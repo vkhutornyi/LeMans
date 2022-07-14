@@ -43,7 +43,7 @@
         "workflows_DEV_ImportManager_parameters_$connections": {
             "defaultValue": {
                 "servicebus_1": {
-                    "connectionId": "[resourceId('Microsoft.Web/connections', 'servicebus-1')]",
+                    "connectionId": "[concat('/subscriptions/',subscription().id,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Web/connections/servicebus-1')]",
                     "connectionName": "servicebus-1",
                     "id": "[concat('/subscriptions/',subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
                 }
@@ -65,7 +65,7 @@
                         "$connections": {
                             "defaultValue": {
                                 "servicebus_1": {
-                                    "connectionId": "[resourceId('Microsoft.Web/connections', 'servicebus-1')]",
+                                    "connectionId": "[concat('/subscriptions/',subscription().id,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Web/connections/servicebus-1')]",
                                     "connectionName": "servicebus-1",
                                     "id": "[concat('/subscriptions/',subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
                                 }
