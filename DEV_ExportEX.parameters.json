@@ -1,0 +1,23 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_DEV_ExportEX_name": {
+            "value": "DEV_ExportEX"
+        },
+        "workflows_DEV_ExportEX_parameters_$connections": {
+            "value": {
+                "filesystem": {
+                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/filesystem",
+                    "connectionName": "filesystem",
+                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/filesystem"
+                },
+                "servicebus_1": {
+                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
+                    "connectionName": "servicebus-1",
+                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                }
+            }
+        }
+    }
+}

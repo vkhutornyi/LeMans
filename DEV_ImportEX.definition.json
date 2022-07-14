@@ -1,0 +1,1893 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_DEV_ImportEX_name": {
+            "defaultValue": "DEV_ImportEX",
+            "type": "string"
+        },
+        "workflows_DEV_ImportEX_parameters_$connections": {
+            "defaultValue": {
+                "azureblob_1": {
+                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/azureblob-1",
+                    "connectionName": "azureblob-1",
+                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/azureblob"
+                },
+                "filesystem": {
+                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/filesystem",
+                    "connectionName": "filesystem",
+                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/filesystem"
+                },
+                "servicebus_1": {
+                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
+                    "connectionName": "servicebus-1",
+                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                }
+            },
+            "type": "Object"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-07-01",
+            "dependsOn": [],
+            "location": "eastus",
+            "name": "[parameters('workflows_DEV_ImportEX_name')]",
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {
+                                "azureblob_1": {
+                                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/azureblob-1",
+                                    "connectionName": "azureblob-1",
+                                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/azureblob"
+                                },
+                                "filesystem": {
+                                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/filesystem",
+                                    "connectionName": "filesystem",
+                                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/filesystem"
+                                },
+                                "servicebus_1": {
+                                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
+                                    "connectionName": "servicebus-1",
+                                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                                }
+                            },
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_message_is_received_in_a_queue_(import-files)": {
+                            "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 2
+                            },
+                            "evaluatedRecurrence": {
+                                "frequency": "Minute",
+                                "interval": 2
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent(encodeURIComponent('importex'))}/messages/head",
+                                "queries": {
+                                    "queueType": "Main"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Append_to_LogMessage_1": {
+                            "runAfter": {
+                                "Initialize_LogMessage": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "AppendToArrayVariable",
+                            "inputs": {
+                                "name": "LogMessage",
+                                "value": {
+                                    "CurrentStep": "Init all variables",
+                                    "DateTime": "@{utcNow()}",
+                                    "NextStep": "Process Manifest files"
+                                }
+                            }
+                        },
+                        "Condition": {
+                            "actions": {},
+                            "runAfter": {
+                                "Append_to_LogMessage_1": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "else": {
+                                "actions": {
+                                    "Condition_2": {
+                                        "actions": {},
+                                        "runAfter": {
+                                            "Process_Manifest_files": [
+                                                "Succeeded"
+                                            ]
+                                        },
+                                        "else": {
+                                            "actions": {
+                                                "Condition_3": {
+                                                    "actions": {},
+                                                    "runAfter": {
+                                                        "Process_Import_files": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "Condition_4": {
+                                                                "actions": {},
+                                                                "runAfter": {
+                                                                    "Process_DMF_Package": [
+                                                                        "Succeeded"
+                                                                    ]
+                                                                },
+                                                                "else": {
+                                                                    "actions": {
+                                                                        "Send_Message": {
+                                                                            "actions": {
+                                                                                "Append_to_LogMessage_5": {
+                                                                                    "runAfter": {
+                                                                                        "Send_message_to_queue": [
+                                                                                            "Succeeded"
+                                                                                        ]
+                                                                                    },
+                                                                                    "type": "AppendToArrayVariable",
+                                                                                    "inputs": {
+                                                                                        "name": "LogMessage",
+                                                                                        "value": {
+                                                                                            "CurrentStep": "Send Message",
+                                                                                            "DateTime": "@{utcNow()}​",
+                                                                                            "NextStep": ""
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "Parse_FileUrl": {
+                                                                                    "runAfter": {},
+                                                                                    "type": "ParseJson",
+                                                                                    "inputs": {
+                                                                                        "content": {
+                                                                                            "FileUrl": "@{body('Create_SAS_URI_of_DMF_package')?['WebUrl']}"
+                                                                                        },
+                                                                                        "schema": {
+                                                                                            "properties": {
+                                                                                                "FileUrl": {
+                                                                                                    "type": "string"
+                                                                                                }
+                                                                                            },
+                                                                                            "type": "object"
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "Send_message_to_queue": {
+                                                                                    "runAfter": {
+                                                                                        "Set_Message": [
+                                                                                            "Succeeded"
+                                                                                        ]
+                                                                                    },
+                                                                                    "type": "ApiConnection",
+                                                                                    "inputs": {
+                                                                                        "body": {
+                                                                                            "ContentData": "@{base64(concat(variables('Message')))}",
+                                                                                            "ContentType": "application/json"
+                                                                                        },
+                                                                                        "host": {
+                                                                                            "connection": {
+                                                                                                "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                                                                                            }
+                                                                                        },
+                                                                                        "method": "post",
+                                                                                        "path": "/@{encodeURIComponent(encodeURIComponent('importqueue'))}/messages",
+                                                                                        "queries": {
+                                                                                            "systemProperties": "Run Details"
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "Set_FileUrl": {
+                                                                                    "runAfter": {
+                                                                                        "Parse_FileUrl": [
+                                                                                            "Succeeded"
+                                                                                        ]
+                                                                                    },
+                                                                                    "type": "SetVariable",
+                                                                                    "inputs": {
+                                                                                        "name": "FileUrl",
+                                                                                        "value": "@body('Parse_FileUrl')"
+                                                                                    }
+                                                                                },
+                                                                                "Set_Message": {
+                                                                                    "runAfter": {
+                                                                                        "Set_FileUrl": [
+                                                                                            "Succeeded"
+                                                                                        ]
+                                                                                    },
+                                                                                    "type": "SetVariable",
+                                                                                    "inputs": {
+                                                                                        "name": "Message",
+                                                                                        "value": "@union(variables('Content'),variables('FileUrl'))"
+                                                                                    }
+                                                                                }
+                                                                            },
+                                                                            "runAfter": {},
+                                                                            "type": "Scope"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "expression": {
+                                                                    "and": [
+                                                                        {
+                                                                            "equals": [
+                                                                                "@variables('Status')",
+                                                                                "Error"
+                                                                            ]
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                "type": "If"
+                                                            },
+                                                            "Process_DMF_Package": {
+                                                                "actions": {
+                                                                    "Append_to_LogMessage_4": {
+                                                                        "runAfter": {
+                                                                            "Create_SAS_URI_of_DMF_package": [
+                                                                                "Succeeded",
+                                                                                "Skipped"
+                                                                            ],
+                                                                            "Set_variable_Status_4": [
+                                                                                "Succeeded",
+                                                                                "Skipped"
+                                                                            ]
+                                                                        },
+                                                                        "type": "AppendToArrayVariable",
+                                                                        "inputs": {
+                                                                            "name": "LogMessage",
+                                                                            "value": {
+                                                                                "CurrentStep": "Process DMF Package",
+                                                                                "DateTime": "@{utcNow()}​",
+                                                                                "NextStep": "Send Message"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "Compress": {
+                                                                        "runAfter": {
+                                                                            "For_each_file_in_folder": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "Function",
+                                                                        "inputs": {
+                                                                            "body": {
+                                                                                "files": "@variables('Files')"
+                                                                            },
+                                                                            "function": {
+                                                                                "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/sites/devlemansfsc/functions/Compress"
+                                                                            },
+                                                                            "method": "POST"
+                                                                        }
+                                                                    },
+                                                                    "Create_DMF_Package": {
+                                                                        "runAfter": {
+                                                                            "Compress": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "ApiConnection",
+                                                                        "inputs": {
+                                                                            "body": "@body('Compress')",
+                                                                            "headers": {
+                                                                                "ReadFileMetadataFromServer": true
+                                                                            },
+                                                                            "host": {
+                                                                                "connection": {
+                                                                                    "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                                                }
+                                                                            },
+                                                                            "method": "post",
+                                                                            "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/files",
+                                                                            "queries": {
+                                                                                "folderPath": "/import/EX/",
+                                                                                "name": "@{concat(variables('RunId'),'.zip')}",
+                                                                                "queryParametersSingleEncoded": true
+                                                                            }
+                                                                        },
+                                                                        "runtimeConfiguration": {
+                                                                            "contentTransfer": {
+                                                                                "transferMode": "Chunked"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "Create_SAS_URI_of_DMF_package": {
+                                                                        "runAfter": {
+                                                                            "Create_DMF_Package": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "ApiConnection",
+                                                                        "inputs": {
+                                                                            "body": {
+                                                                                "Permissions": "Read"
+                                                                            },
+                                                                            "host": {
+                                                                                "connection": {
+                                                                                    "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                                                }
+                                                                            },
+                                                                            "method": "post",
+                                                                            "path": "/v2/datasets/@{encodeURIComponent('AccountNameFromSettings')}/CreateSharedLinkByPath",
+                                                                            "queries": {
+                                                                                "path": "@body('Create_DMF_Package')?['Path']"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "For_each_file_in_folder": {
+                                                                        "foreach": "@body('Lists_files_in_folder')?['value']",
+                                                                        "actions": {
+                                                                            "Append_to_array_variable": {
+                                                                                "runAfter": {
+                                                                                    "Compose": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "AppendToArrayVariable",
+                                                                                "inputs": {
+                                                                                    "name": "Files",
+                                                                                    "value": "@outputs('Compose')"
+                                                                                }
+                                                                            },
+                                                                            "Compose": {
+                                                                                "runAfter": {
+                                                                                    "Create_SAS_URI_of_file": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "Compose",
+                                                                                "inputs": {
+                                                                                    "name": "@{items('For_each_file_in_folder')?['Name']}",
+                                                                                    "url": "@{body('Create_SAS_URI_of_file')?['WebUrl']}"
+                                                                                }
+                                                                            },
+                                                                            "Create_SAS_URI_of_file": {
+                                                                                "runAfter": {},
+                                                                                "type": "ApiConnection",
+                                                                                "inputs": {
+                                                                                    "body": {
+                                                                                        "Permissions": "Read"
+                                                                                    },
+                                                                                    "host": {
+                                                                                        "connection": {
+                                                                                            "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                                                        }
+                                                                                    },
+                                                                                    "method": "post",
+                                                                                    "path": "/v2/datasets/@{encodeURIComponent('AccountNameFromSettings')}/CreateSharedLinkByPath",
+                                                                                    "queries": {
+                                                                                        "path": "@items('For_each_file_in_folder')?['Path']"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "runAfter": {
+                                                                            "Lists_files_in_folder": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "Foreach"
+                                                                    },
+                                                                    "Lists_files_in_folder": {
+                                                                        "runAfter": {},
+                                                                        "type": "ApiConnection",
+                                                                        "inputs": {
+                                                                            "host": {
+                                                                                "connection": {
+                                                                                    "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                                                }
+                                                                            },
+                                                                            "method": "get",
+                                                                            "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/foldersV2/@{encodeURIComponent(encodeURIComponent(concat('/import/EX/',variables('RunId'))))}",
+                                                                            "queries": {
+                                                                                "nextPageMarker": "",
+                                                                                "useFlatListing": true
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "Parse_JSON_4": {
+                                                                        "runAfter": {
+                                                                            "Compress": [
+                                                                                "TimedOut",
+                                                                                "Failed"
+                                                                            ]
+                                                                        },
+                                                                        "type": "ParseJson",
+                                                                        "inputs": {
+                                                                            "content": "@actions('Compress')",
+                                                                            "schema": {
+                                                                                "properties": {
+                                                                                    "clientTrackingId": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "code": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "endTime": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "error": {
+                                                                                        "properties": {
+                                                                                            "code": {
+                                                                                                "type": "string"
+                                                                                            },
+                                                                                            "message": {
+                                                                                                "type": "string"
+                                                                                            }
+                                                                                        },
+                                                                                        "type": "object"
+                                                                                    },
+                                                                                    "inputs": {
+                                                                                        "properties": {
+                                                                                            "authentication": {
+                                                                                                "properties": {
+                                                                                                    "audience": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "clientId": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "secret": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "tenant": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "type": {
+                                                                                                        "type": "string"
+                                                                                                    }
+                                                                                                },
+                                                                                                "type": "object"
+                                                                                            },
+                                                                                            "body": {
+                                                                                                "properties": {
+                                                                                                    "definitionGroupId": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "executionId": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "legalEntityId": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "packageName": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "reExecute": {
+                                                                                                        "type": "boolean"
+                                                                                                    }
+                                                                                                },
+                                                                                                "type": "object"
+                                                                                            },
+                                                                                            "method": {
+                                                                                                "type": "string"
+                                                                                            },
+                                                                                            "uri": {
+                                                                                                "type": "string"
+                                                                                            }
+                                                                                        },
+                                                                                        "type": "object"
+                                                                                    },
+                                                                                    "name": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "retryHistory": {
+                                                                                        "items": {
+                                                                                            "properties": {
+                                                                                                "clientRequestId": {
+                                                                                                    "type": "string"
+                                                                                                },
+                                                                                                "code": {
+                                                                                                    "type": "string"
+                                                                                                },
+                                                                                                "endTime": {
+                                                                                                    "type": "string"
+                                                                                                },
+                                                                                                "error": {
+                                                                                                    "properties": {
+                                                                                                        "error": {
+                                                                                                            "properties": {
+                                                                                                                "code": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "message": {
+                                                                                                                    "type": "string"
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "type": "object"
+                                                                                                        }
+                                                                                                    },
+                                                                                                    "type": "object"
+                                                                                                },
+                                                                                                "startTime": {
+                                                                                                    "type": "string"
+                                                                                                }
+                                                                                            },
+                                                                                            "required": [
+                                                                                                "startTime",
+                                                                                                "endTime",
+                                                                                                "code",
+                                                                                                "clientRequestId",
+                                                                                                "error"
+                                                                                            ],
+                                                                                            "type": "object"
+                                                                                        },
+                                                                                        "type": "array"
+                                                                                    },
+                                                                                    "startTime": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "status": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "trackingId": {
+                                                                                        "type": "string"
+                                                                                    }
+                                                                                },
+                                                                                "type": "object"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "Set_variable_Message_4": {
+                                                                        "runAfter": {
+                                                                            "Parse_JSON_4": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "SetVariable",
+                                                                        "inputs": {
+                                                                            "name": "ErrorMessage",
+                                                                            "value": "@{concat(body('Parse_JSON_4')?['error']?['message'],'https://devlemansfsc.azurewebsites.net/api/Compress?code=n2gkf6bP1d7JZrTaGiUXjyNAAZ_2CgisuzM8Ksy3_48wAzFu_kqYng==')}"
+                                                                        }
+                                                                    },
+                                                                    "Set_variable_Status_4": {
+                                                                        "runAfter": {
+                                                                            "Set_variable_Message_4": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "SetVariable",
+                                                                        "inputs": {
+                                                                            "name": "Status",
+                                                                            "value": "Error"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "Scope"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@variables('Status')",
+                                                                    "Error"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Process_Import_files": {
+                                                    "actions": {
+                                                        "Append_to_LogMessage_3": {
+                                                            "runAfter": {
+                                                                "For_each_importing_file": [
+                                                                    "Succeeded",
+                                                                    "Skipped"
+                                                                ],
+                                                                "Set_variable_Status_3": [
+                                                                    "Succeeded",
+                                                                    "Skipped"
+                                                                ]
+                                                            },
+                                                            "type": "AppendToArrayVariable",
+                                                            "inputs": {
+                                                                "name": "LogMessage",
+                                                                "value": {
+                                                                    "CurrentStep": "Process Import files",
+                                                                    "DateTime": "@{utcNow()}",
+                                                                    "NextStep": "Process DMF Package"
+                                                                }
+                                                            }
+                                                        },
+                                                        "For_each_importing_file": {
+                                                            "foreach": "@body('List_files_in_folder')",
+                                                            "actions": {
+                                                                "Get_file_content": {
+                                                                    "runAfter": {},
+                                                                    "type": "ApiConnection",
+                                                                    "inputs": {
+                                                                        "host": {
+                                                                            "connection": {
+                                                                                "name": "@parameters('$connections')['filesystem']['connectionId']"
+                                                                            }
+                                                                        },
+                                                                        "method": "get",
+                                                                        "path": "/datasets/default/files/@{encodeURIComponent(encodeURIComponent(items('For_each_importing_file')?['Path']))}/content",
+                                                                        "queries": {
+                                                                            "inferContentType": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "Put_file_to_Blob_storage": {
+                                                                    "runAfter": {
+                                                                        "Get_file_content": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "ApiConnection",
+                                                                    "inputs": {
+                                                                        "body": "@body('Get_file_content')",
+                                                                        "headers": {
+                                                                            "ReadFileMetadataFromServer": true
+                                                                        },
+                                                                        "host": {
+                                                                            "connection": {
+                                                                                "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                                            }
+                                                                        },
+                                                                        "method": "post",
+                                                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/files",
+                                                                        "queries": {
+                                                                            "folderPath": "@{concat('/import/EX/',variables('RunId'))}",
+                                                                            "name": "@items('For_each_importing_file')?['Name']",
+                                                                            "queryParametersSingleEncoded": true
+                                                                        }
+                                                                    },
+                                                                    "runtimeConfiguration": {
+                                                                        "contentTransfer": {
+                                                                            "transferMode": "Chunked"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            "runAfter": {
+                                                                "List_files_in_folder": [
+                                                                    "Succeeded"
+                                                                ]
+                                                            },
+                                                            "type": "Foreach"
+                                                        },
+                                                        "List_files_in_folder": {
+                                                            "runAfter": {},
+                                                            "metadata": {
+                                                                "QzpcUGFja2FnZXNcaW1wb3J0": "C:\\Packages\\import"
+                                                            },
+                                                            "type": "ApiConnection",
+                                                            "inputs": {
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['filesystem']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "get",
+                                                                "path": "/datasets/default/folders/@{encodeURIComponent(encodeURIComponent('QzpcUGFja2FnZXNcaW1wb3J0'))}"
+                                                            }
+                                                        },
+                                                        "Parse_JSON_3": {
+                                                            "runAfter": {
+                                                                "List_files_in_folder": [
+                                                                    "Failed",
+                                                                    "TimedOut"
+                                                                ]
+                                                            },
+                                                            "type": "ParseJson",
+                                                            "inputs": {
+                                                                "content": "@actions('List_files_in_folder')",
+                                                                "schema": {
+                                                                    "properties": {
+                                                                        "clientTrackingId": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "code": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "endTime": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "inputs": {
+                                                                            "properties": {
+                                                                                "host": {
+                                                                                    "properties": {
+                                                                                        "connection": {
+                                                                                            "properties": {
+                                                                                                "name": {
+                                                                                                    "type": "string"
+                                                                                                }
+                                                                                            },
+                                                                                            "type": "object"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                },
+                                                                                "method": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "path": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "name": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "outputs": {
+                                                                            "properties": {
+                                                                                "body": {
+                                                                                    "properties": {
+                                                                                        "error": {
+                                                                                            "properties": {
+                                                                                                "message": {
+                                                                                                    "type": "string"
+                                                                                                }
+                                                                                            },
+                                                                                            "type": "object"
+                                                                                        },
+                                                                                        "message": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "source": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "status": {
+                                                                                            "type": "integer"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                },
+                                                                                "headers": {
+                                                                                    "properties": {
+                                                                                        "Cache-Control": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Content-Length": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Content-Type": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Date": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Expires": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Pragma": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Set-Cookie": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Strict-Transport-Security": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "Timing-Allow-Origin": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "X-Content-Type-Options": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "X-Frame-Options": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "x-ms-apihub-cached-response": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "x-ms-apihub-obo": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "x-ms-connection-gateway-object-id": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "x-ms-request-id": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                },
+                                                                                "statusCode": {
+                                                                                    "type": "integer"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "startTime": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "status": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "trackingId": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            }
+                                                        },
+                                                        "Set_variable_Message_3": {
+                                                            "runAfter": {
+                                                                "Parse_JSON_3": [
+                                                                    "Succeeded"
+                                                                ]
+                                                            },
+                                                            "type": "SetVariable",
+                                                            "inputs": {
+                                                                "name": "ErrorMessage",
+                                                                "value": "@body('Parse_JSON_3')?['outputs']?['body']?['message']"
+                                                            }
+                                                        },
+                                                        "Set_variable_Status_3": {
+                                                            "runAfter": {
+                                                                "Set_variable_Message_3": [
+                                                                    "Succeeded"
+                                                                ]
+                                                            },
+                                                            "type": "SetVariable",
+                                                            "inputs": {
+                                                                "name": "Status",
+                                                                "value": "Error"
+                                                            }
+                                                        }
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "Scope"
+                                                }
+                                            }
+                                        },
+                                        "expression": {
+                                            "and": [
+                                                {
+                                                    "equals": [
+                                                        "@variables('Status')",
+                                                        "Error"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "type": "If"
+                                    },
+                                    "Process_Manifest_files": {
+                                        "actions": {
+                                            "Append_to_LogMessage_2": {
+                                                "runAfter": {
+                                                    "Delete_Manifest_archive": [
+                                                        "Succeeded"
+                                                    ],
+                                                    "Set_variable_2": [
+                                                        "Succeeded"
+                                                    ],
+                                                    "Set_variable_Status_1": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "AppendToArrayVariable",
+                                                "inputs": {
+                                                    "name": "LogMessage",
+                                                    "value": {
+                                                        "CurrentStep": "Process Manifest files",
+                                                        "DateTime": "@{utcNow()}",
+                                                        "NextStep": "Process Import files"
+                                                    }
+                                                }
+                                            },
+                                            "Delete_Manifest_archive": {
+                                                "runAfter": {
+                                                    "Extract_Manifest_archive": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "headers": {
+                                                        "SkipDeleteIfFileNotFoundOnServer": false
+                                                    },
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "delete",
+                                                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/files/@{encodeURIComponent(encodeURIComponent(body('Put_Manifest_archive')?['Path']))}"
+                                                }
+                                            },
+                                            "Extract_Manifest_archive": {
+                                                "runAfter": {
+                                                    "Put_Manifest_archive": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/extractFolderV2",
+                                                    "queries": {
+                                                        "destination": "@{concat('/import/EX/',variables('RunId'))}",
+                                                        "overwrite": true,
+                                                        "queryParametersSingleEncoded": true,
+                                                        "source": "@body('Put_Manifest_archive')?['Path']"
+                                                    }
+                                                }
+                                            },
+                                            "Get_Manifest_File": {
+                                                "runAfter": {
+                                                    "Parse_Get_Manifest_File_URL_response": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "Http",
+                                                "inputs": {
+                                                    "method": "GET",
+                                                    "uri": "@body('Parse_Get_Manifest_File_URL_response')?['value']"
+                                                }
+                                            },
+                                            "Get_Manifest_File_URL": {
+                                                "runAfter": {},
+                                                "type": "Http",
+                                                "inputs": {
+                                                    "authentication": {
+                                                        "audience": "@variables('Audience')",
+                                                        "clientId": "@variables('ClientId')",
+                                                        "secret": "@variables('ClientSecret')",
+                                                        "tenant": "@variables('TenantId')",
+                                                        "type": "ActiveDirectoryOAuth"
+                                                    },
+                                                    "method": "POST",
+                                                    "queries": {
+                                                        "cross-company": "true"
+                                                    },
+                                                    "uri": "@{concat(variables('BaseURL'),'/data/DataManagementIntegrations(DataManagementIntegrationId=''',variables('DataManagementIntegrationId'),''')/Microsoft.Dynamics.DataEntities.DownloadDataPackage')}"
+                                                }
+                                            },
+                                            "Parse_Get_Manifest_File_URL_response": {
+                                                "runAfter": {
+                                                    "Get_Manifest_File_URL": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ParseJson",
+                                                "inputs": {
+                                                    "content": "@body('Get_Manifest_File_URL')",
+                                                    "schema": {
+                                                        "properties": {
+                                                            "@@odata.context": {
+                                                                "type": "string"
+                                                            },
+                                                            "value": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "Parse_JSON_1": {
+                                                "runAfter": {
+                                                    "Get_Manifest_File_URL": [
+                                                        "TimedOut",
+                                                        "Failed"
+                                                    ]
+                                                },
+                                                "type": "ParseJson",
+                                                "inputs": {
+                                                    "content": "@actions('Get_Manifest_File_URL')",
+                                                    "schema": {
+                                                        "properties": {
+                                                            "clientTrackingId": {
+                                                                "type": "string"
+                                                            },
+                                                            "code": {
+                                                                "type": "string"
+                                                            },
+                                                            "endTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "error": {
+                                                                "properties": {
+                                                                    "code": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "inputs": {
+                                                                "properties": {
+                                                                    "authentication": {
+                                                                        "properties": {
+                                                                            "audience": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "clientId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "secret": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "tenant": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "type": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "body": {
+                                                                        "properties": {
+                                                                            "definitionGroupId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "executionId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "legalEntityId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "packageName": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "reExecute": {
+                                                                                "type": "boolean"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "method": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "uri": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "retryHistory": {
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "clientRequestId": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "code": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "endTime": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "error": {
+                                                                            "properties": {
+                                                                                "error": {
+                                                                                    "properties": {
+                                                                                        "code": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "message": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "startTime": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "startTime",
+                                                                        "endTime",
+                                                                        "code",
+                                                                        "clientRequestId",
+                                                                        "error"
+                                                                    ],
+                                                                    "type": "object"
+                                                                },
+                                                                "type": "array"
+                                                            },
+                                                            "startTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "trackingId": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "Parse_JSON_2": {
+                                                "runAfter": {
+                                                    "Get_Manifest_File": [
+                                                        "Failed",
+                                                        "TimedOut"
+                                                    ]
+                                                },
+                                                "type": "ParseJson",
+                                                "inputs": {
+                                                    "content": "@actions('Get_Manifest_File')",
+                                                    "schema": {
+                                                        "properties": {
+                                                            "clientTrackingId": {
+                                                                "type": "string"
+                                                            },
+                                                            "code": {
+                                                                "type": "string"
+                                                            },
+                                                            "endTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "error": {
+                                                                "properties": {
+                                                                    "code": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "inputs": {
+                                                                "properties": {
+                                                                    "authentication": {
+                                                                        "properties": {
+                                                                            "audience": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "clientId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "secret": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "tenant": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "type": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "body": {
+                                                                        "properties": {
+                                                                            "definitionGroupId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "executionId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "legalEntityId": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "packageName": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "reExecute": {
+                                                                                "type": "boolean"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "method": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "uri": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "retryHistory": {
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "clientRequestId": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "code": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "endTime": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "error": {
+                                                                            "properties": {
+                                                                                "error": {
+                                                                                    "properties": {
+                                                                                        "code": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "message": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "startTime": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "startTime",
+                                                                        "endTime",
+                                                                        "code",
+                                                                        "clientRequestId",
+                                                                        "error"
+                                                                    ],
+                                                                    "type": "object"
+                                                                },
+                                                                "type": "array"
+                                                            },
+                                                            "startTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "trackingId": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "Put_Manifest_archive": {
+                                                "runAfter": {
+                                                    "Get_Manifest_File": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "body": "@body('Get_Manifest_File')",
+                                                    "headers": {
+                                                        "ReadFileMetadataFromServer": true
+                                                    },
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/files",
+                                                    "queries": {
+                                                        "folderPath": "/import/EX/",
+                                                        "name": "Manifest.zip",
+                                                        "queryParametersSingleEncoded": true
+                                                    }
+                                                },
+                                                "runtimeConfiguration": {
+                                                    "contentTransfer": {
+                                                        "transferMode": "Chunked"
+                                                    }
+                                                }
+                                            },
+                                            "Set_variable_2": {
+                                                "runAfter": {
+                                                    "Set_variable_Message_2": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable",
+                                                "inputs": {
+                                                    "name": "Status",
+                                                    "value": "Error"
+                                                }
+                                            },
+                                            "Set_variable_Message_1": {
+                                                "runAfter": {
+                                                    "Parse_JSON_1": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable",
+                                                "inputs": {
+                                                    "name": "ErrorMessage",
+                                                    "value": "@{concat(body('Parse_JSON_1')?['error']?['message'],concat(variables('BaseURL'),'/data/DataManagementIntegrations(DataManagementIntegrationId=''',variables('DataManagementIntegrationId'),''')/Microsoft.Dynamics.DataEntities.DownloadDataPackage'))}"
+                                                }
+                                            },
+                                            "Set_variable_Message_2": {
+                                                "runAfter": {
+                                                    "Parse_JSON_2": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable",
+                                                "inputs": {
+                                                    "name": "ErrorMessage",
+                                                    "value": "@body('Parse_JSON_2')?['error']?['message']"
+                                                }
+                                            },
+                                            "Set_variable_Status_1": {
+                                                "runAfter": {
+                                                    "Set_variable_Message_1": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable",
+                                                "inputs": {
+                                                    "name": "Status",
+                                                    "value": "Error"
+                                                }
+                                            }
+                                        },
+                                        "runAfter": {},
+                                        "type": "Scope"
+                                    }
+                                }
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@variables('Status')",
+                                            "Error"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        },
+                        "DEV_Logging": {
+                            "runAfter": {
+                                "Condition": [
+                                    "Succeeded",
+                                    "Failed",
+                                    "Skipped",
+                                    "TimedOut"
+                                ]
+                            },
+                            "type": "Workflow",
+                            "inputs": {
+                                "body": {
+                                    "ArrayOfLogs": "@variables('LogMessage')",
+                                    "BusinessEventId": "@variables('BusinessEventId')",
+                                    "ContentData": "@body('Parse_Message')?['ContentData']",
+                                    "CustomErrorMessage": "@variables('ErrorMessage')",
+                                    "DataPackageURL": "@body('Parse_Get_Manifest_File_URL_response')?['value']",
+                                    "EnqueuedTimeUtc": "@body('Parse_Message')?['Properties']?['EnqueuedTimeUtc']",
+                                    "LogicAppExecutionId": "@body('Parse_WorkFlow')?['run']?['name']",
+                                    "LogicAppName": "@body('Parse_WorkFlow')?['name']",
+                                    "LogicAppRunId": "@body('Parse_WorkFlow')?['run']?['id']",
+                                    "LogsType": "LogicAppConnector",
+                                    "MessageId": "@triggerBody()?['MessageId']",
+                                    "Status": "@variables('Status')"
+                                },
+                                "host": {
+                                    "triggerName": "manual",
+                                    "workflow": {
+                                        "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Logic/workflows/DEV_Logging"
+                                    }
+                                }
+                            }
+                        },
+                        "Initialize_Audience": {
+                            "runAfter": {
+                                "Initialize_BaseURL": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Audience",
+                                        "type": "string",
+                                        "value": "@{concat(body('Parse_Content')?['D365EnvironmentURL'],'/')}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_BaseURL": {
+                            "runAfter": {
+                                "Initialize_TenantId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "BaseURL",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['D365EnvironmentURL']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_BusinessEventId": {
+                            "runAfter": {
+                                "Initialize_FileList": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "BusinessEventId",
+                                        "type": "string",
+                                        "value": "@{guid()}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ClientId": {
+                            "runAfter": {
+                                "Initialize_Audience": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ClientId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['AzureApplicationId']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ClientSecret": {
+                            "runAfter": {
+                                "Initialize_ClientId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ClientSecret",
+                                        "type": "string",
+                                        "value": "@{base64ToString(body('Parse_Content')?['AzureApplicationSecret'])}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Content": {
+                            "runAfter": {
+                                "Initialize_DataManagementIntegrationId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Content",
+                                        "type": "object",
+                                        "value": "@body('Parse_Content')"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_DataManagementIntegrationId": {
+                            "runAfter": {
+                                "Initialize_ClientSecret": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "DataManagementIntegrationId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['DataManagementIntegrationId']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ErrorMessage": {
+                            "runAfter": {
+                                "Initialize_BusinessEventId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ErrorMessage",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_FileList": {
+                            "runAfter": {
+                                "Initialize_Message": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Files",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_FileUrl": {
+                            "runAfter": {
+                                "Initialize_Content": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "FileUrl",
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_LogMessage": {
+                            "runAfter": {
+                                "Initialize_Status": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "LogMessage",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Message": {
+                            "runAfter": {
+                                "Initialize_FileUrl": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Message",
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_RunId": {
+                            "runAfter": {
+                                "Parse_WorkFlow": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "RunId",
+                                        "type": "string",
+                                        "value": "@body('Parse_WorkFlow')?['run']?['name']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Status": {
+                            "runAfter": {
+                                "Initialize_ErrorMessage": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Status",
+                                        "type": "string",
+                                        "value": "OK"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_TenantId": {
+                            "runAfter": {
+                                "Parse_Content": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "TenantId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['AzureTenantId']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Parse_Content": {
+                            "runAfter": {
+                                "Parse_Message": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@base64ToString(triggerBody()?['ContentData'])",
+                                "schema": {
+                                    "properties": {
+                                        "AzureApplicationId": {
+                                            "type": "string"
+                                        },
+                                        "AzureApplicationSecret": {
+                                            "type": "string"
+                                        },
+                                        "AzureTenantId": {
+                                            "type": "string"
+                                        },
+                                        "BusinessEventId": {
+                                            "type": "string"
+                                        },
+                                        "ControlNumber": {
+                                            "type": "integer"
+                                        },
+                                        "D365EnvironmentURL": {
+                                            "type": "string"
+                                        },
+                                        "DataManagementIntegrationId": {
+                                            "type": "string"
+                                        },
+                                        "DataManagementIntegrationUniqueId": {
+                                            "type": "string"
+                                        },
+                                        "DataMigrationDirection": {
+                                            "type": "string"
+                                        },
+                                        "DataProjectErrorPath": {
+                                            "type": "string"
+                                        },
+                                        "DataProjectPath": {
+                                            "type": "string"
+                                        },
+                                        "DataProjectProcessedPath": {
+                                            "type": "string"
+                                        },
+                                        "DefinitionGroupName": {
+                                            "type": "string"
+                                        },
+                                        "EnvironmentName": {
+                                            "type": "string"
+                                        },
+                                        "EventId": {
+                                            "type": "string"
+                                        },
+                                        "EventTime": {
+                                            "type": "string"
+                                        },
+                                        "ExternalSystem": {
+                                            "type": "string"
+                                        },
+                                        "ExternalSystemDescription": {
+                                            "type": "string"
+                                        },
+                                        "LegalEntity": {
+                                            "type": "string"
+                                        },
+                                        "MajorVersion": {
+                                            "type": "integer"
+                                        },
+                                        "MinorVersion": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Parse_Message": {
+                            "runAfter": {
+                                "Initialize_RunId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@triggerBody()",
+                                "schema": {
+                                    "properties": {
+                                        "ContentData": {
+                                            "type": "string"
+                                        },
+                                        "ContentTransferEncoding": {
+                                            "type": "string"
+                                        },
+                                        "ContentType": {
+                                            "type": "string"
+                                        },
+                                        "CorrelationId": {},
+                                        "Label": {},
+                                        "LockToken": {
+                                            "type": "string"
+                                        },
+                                        "MessageId": {
+                                            "type": "string"
+                                        },
+                                        "Properties": {
+                                            "properties": {
+                                                "BusinessEventCategory": {
+                                                    "type": "string"
+                                                },
+                                                "BusinessEventId": {
+                                                    "type": "string"
+                                                },
+                                                "DeliveryCount": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedSequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "EventId": {
+                                                    "type": "string"
+                                                },
+                                                "ExpiresAtUtc": {
+                                                    "type": "string"
+                                                },
+                                                "LegalEntity": {
+                                                    "type": "string"
+                                                },
+                                                "LockToken": {
+                                                    "type": "string"
+                                                },
+                                                "LockedUntilUtc": {
+                                                    "type": "string"
+                                                },
+                                                "MessageId": {
+                                                    "type": "string"
+                                                },
+                                                "ScheduledEnqueueTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "SequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "Size": {
+                                                    "type": "string"
+                                                },
+                                                "State": {
+                                                    "type": "string"
+                                                },
+                                                "TimeToLive": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "ReplyTo": {},
+                                        "ReplyToSessionId": {},
+                                        "ScheduledEnqueueTimeUtc": {
+                                            "type": "string"
+                                        },
+                                        "SequenceNumber": {
+                                            "type": "integer"
+                                        },
+                                        "SessionId": {},
+                                        "TimeToLive": {
+                                            "type": "string"
+                                        },
+                                        "To": {}
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Parse_WorkFlow": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@workflow()",
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "location": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "run": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "tags": {
+                                            "properties": {},
+                                            "type": "object"
+                                        },
+                                        "type": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": "[parameters('workflows_DEV_ImportEX_parameters_$connections')]"
+                    }
+                },
+                "state": "Enabled"
+            },
+            "scale": null,
+            "tags": {},
+            "type": "Microsoft.Logic/workflows"
+        }
+    ],
+    "variables": {}
+}

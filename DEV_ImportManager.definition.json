@@ -1,0 +1,487 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "defaultValue": "DEV_ImportManager",
+            "type": "string"
+        },
+        "logicAppLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+              "[resourceGroup().location]",
+              "eastasia",
+              "southeastasia",
+              "centralus",
+              "eastus",
+              "eastus2",
+              "westus",
+              "northcentralus",
+              "southcentralus",
+              "northeurope",
+              "westeurope",
+              "japanwest",
+              "japaneast",
+              "brazilsouth",
+              "australiaeast",
+              "australiasoutheast",
+              "southindia",
+              "centralindia",
+              "westindia",
+              "canadacentral",
+              "canadaeast",
+              "uksouth",
+              "ukwest",
+              "westcentralus",
+              "westus2"
+            ],
+            "metadata": {
+              "description": "Location of the Logic App."
+            }
+        },        
+        "workflows_DEV_ImportManager_parameters_$connections": {
+            "defaultValue": {
+                "servicebus_1": {
+                    "connectionId": "[resourceId('Microsoft.Web/connections', 'servicebus-1')]",
+                    "connectionName": "servicebus-1",
+                    "id": "[concat('/subscriptions/',subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
+                }
+            },
+            "type": "Object"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-07-01",
+            "dependsOn": [],
+            "location": "eastus",
+            "name": "[parameters('logicAppName')]",
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {
+                                "servicebus_1": {
+                                    "connectionId": "[resourceId('Microsoft.Web/connections', 'servicebus-1')]",
+                                    "connectionName": "servicebus-1",
+                                    "id": "[concat('/subscriptions/',subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
+                                }
+                            },
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_message_is_received_in_a_queue_(businessevents)": {
+                            "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 1
+                            },
+                            "evaluatedRecurrence": {
+                                "frequency": "Minute",
+                                "interval": 1
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent(encodeURIComponent('importbusinessevent'))}/messages/head",
+                                "queries": {
+                                    "queueType": "Main"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Append_to_LogMessage_1": {
+                            "runAfter": {
+                                "Initialize_LogMessage": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "AppendToArrayVariable",
+                            "inputs": {
+                                "name": "LogMessage",
+                                "value": {
+                                    "CurrentStep": "Init all variables",
+                                    "DateTime": "@{utcNow()}",
+                                    "NextStep": "Send Message"
+                                }
+                            }
+                        },
+                        "Append_to_LogMessage_2": {
+                            "runAfter": {
+                                "Send_message": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "AppendToArrayVariable",
+                            "inputs": {
+                                "name": "LogMessage",
+                                "value": {
+                                    "CurrentStep": "Send Message",
+                                    "DateTime": "@{utcNow()}",
+                                    "NextStep": ""
+                                }
+                            }
+                        },
+                        "DEV_Logging": {
+                            "runAfter": {
+                                "Append_to_LogMessage_2": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Workflow",
+                            "inputs": {
+                                "body": {
+                                    "ArrayOfLogs": "@variables('LogMessage')",
+                                    "BusinessEventId": "@variables('BusinessEventId')",
+                                    "ContentData": "@body('Parse_Message')?['ContentData']",
+                                    "EnqueuedTimeUtc": "@body('Parse_Message')?['Properties']?['EnqueuedTimeUtc']",
+                                    "LogicAppExecutionId": "@body('Parse_Workflow')?['run']?['name']",
+                                    "LogicAppName": "@body('Parse_Workflow')?['name']",
+                                    "LogicAppRunId": "@body('Parse_Workflow')?['run']?['id']",
+                                    "LogsType": "LogicAppMain",
+                                    "MessageId": "@triggerBody()?['MessageId']",
+                                    "Status": "OK"
+                                },
+                                "host": {
+                                    "triggerName": "manual",
+                                    "workflow": {
+                                        "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Logic/workflows/DEV_Logging"
+                                    }
+                                }
+                            }
+                        },
+                        "Initialize_BusinessEventId": {
+                            "runAfter": {
+                                "Initialize_ExternalSystem": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "BusinessEventId",
+                                        "type": "string",
+                                        "value": "@{guid()}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Content": {
+                            "runAfter": {
+                                "Parse_Message": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Content",
+                                        "type": "string",
+                                        "value": "@{base64ToString(body('Parse_Message')?['ContentData'])}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Direction": {
+                            "runAfter": {
+                                "Parse_ContentData": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Direction",
+                                        "type": "string",
+                                        "value": "@body('Parse_ContentData')?['DataMigrationDirection']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ExternalSystem": {
+                            "runAfter": {
+                                "Initialize_Direction": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ExternalSystem",
+                                        "type": "string",
+                                        "value": "@body('Parse_ContentData')?['ExternalSystem']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_LogMessage": {
+                            "runAfter": {
+                                "Initialize_BusinessEventId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "LogMessage",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "Parse_ContentData": {
+                            "runAfter": {
+                                "Initialize_Content": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@variables('Content')",
+                                "schema": {
+                                    "properties": {
+                                        "AzureApplicationId": {
+                                            "type": "string"
+                                        },
+                                        "AzureApplicationSecret": {
+                                            "type": "string"
+                                        },
+                                        "AzureTenantId": {
+                                            "type": "string"
+                                        },
+                                        "BusinessEventId": {
+                                            "type": "string"
+                                        },
+                                        "ControlNumber": {
+                                            "type": "integer"
+                                        },
+                                        "D365EnvironmentURL": {
+                                            "type": "string"
+                                        },
+                                        "DataManagementIntegrationUniqueId": {
+                                            "type": "string"
+                                        },
+                                        "DataMigrationDirection": {
+                                            "type": "string"
+                                        },
+                                        "DefinitionGroupName": {
+                                            "type": "string"
+                                        },
+                                        "EventId": {
+                                            "type": "string"
+                                        },
+                                        "EventTime": {
+                                            "type": "string"
+                                        },
+                                        "ExternalSystem": {
+                                            "type": "string"
+                                        },
+                                        "LegalEntity": {
+                                            "type": "string"
+                                        },
+                                        "MajorVersion": {
+                                            "type": "integer"
+                                        },
+                                        "MinorVersion": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Parse_Message": {
+                            "runAfter": {
+                                "Parse_Workflow": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@triggerBody()",
+                                "schema": {
+                                    "properties": {
+                                        "ContentData": {
+                                            "type": "string"
+                                        },
+                                        "ContentTransferEncoding": {
+                                            "type": "string"
+                                        },
+                                        "ContentType": {
+                                            "type": "string"
+                                        },
+                                        "CorrelationId": {},
+                                        "Label": {},
+                                        "LockToken": {
+                                            "type": "string"
+                                        },
+                                        "MessageId": {
+                                            "type": "string"
+                                        },
+                                        "Properties": {
+                                            "properties": {
+                                                "BusinessEventCategory": {
+                                                    "type": "string"
+                                                },
+                                                "BusinessEventId": {
+                                                    "type": "string"
+                                                },
+                                                "DeliveryCount": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedSequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "EventId": {
+                                                    "type": "string"
+                                                },
+                                                "ExpiresAtUtc": {
+                                                    "type": "string"
+                                                },
+                                                "LegalEntity": {
+                                                    "type": "string"
+                                                },
+                                                "LockToken": {
+                                                    "type": "string"
+                                                },
+                                                "LockedUntilUtc": {
+                                                    "type": "string"
+                                                },
+                                                "MessageId": {
+                                                    "type": "string"
+                                                },
+                                                "ScheduledEnqueueTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "SequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "Size": {
+                                                    "type": "string"
+                                                },
+                                                "State": {
+                                                    "type": "string"
+                                                },
+                                                "TimeToLive": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "ReplyTo": {},
+                                        "ReplyToSessionId": {},
+                                        "ScheduledEnqueueTimeUtc": {
+                                            "type": "string"
+                                        },
+                                        "SequenceNumber": {
+                                            "type": "integer"
+                                        },
+                                        "SessionId": {},
+                                        "TimeToLive": {
+                                            "type": "string"
+                                        },
+                                        "To": {}
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Parse_Workflow": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@workflow()",
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "location": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "run": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "tags": {
+                                            "properties": {},
+                                            "type": "object"
+                                        },
+                                        "type": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Send_message": {
+                            "runAfter": {
+                                "Append_to_LogMessage_1": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "ContentData": "@{triggerBody()?['ContentData']}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/@{encodeURIComponent(encodeURIComponent(concat(variables('Direction'),variables('ExternalSystem'))))}/messages",
+                                "queries": {
+                                    "systemProperties": "None"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": "[parameters('workflows_DEV_ImportManager_parameters_$connections')]"
+                    }
+                },
+                "state": "Enabled"
+            },
+            "scale": null,
+            "tags": {},
+            "type": "Microsoft.Logic/workflows"
+        }
+    ],
+    "variables": {}
+}

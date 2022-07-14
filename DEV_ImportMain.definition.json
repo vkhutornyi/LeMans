@@ -1,0 +1,1421 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_DEV_ImportMain_name": {
+            "defaultValue": "DEV_ImportMain",
+            "type": "string"
+        },
+        "workflows_DEV_ImportMain_parameters_$connections": {
+            "defaultValue": {
+                "servicebus_1": {
+                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
+                    "connectionName": "servicebus-1",
+                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                }
+            },
+            "type": "Object"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-07-01",
+            "dependsOn": [],
+            "location": "eastus",
+            "name": "[parameters('workflows_DEV_ImportMain_name')]",
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {
+                                "servicebus_1": {
+                                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
+                                    "connectionName": "servicebus-1",
+                                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                                }
+                            },
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_message_is_received_in_a_queue_(businessevents)": {
+                            "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 1
+                            },
+                            "evaluatedRecurrence": {
+                                "frequency": "Minute",
+                                "interval": 1
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent(encodeURIComponent('importqueue'))}/messages/head",
+                                "queries": {
+                                    "queueType": "Main"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Append_to_LogMessage_1": {
+                            "runAfter": {
+                                "Initialize_LogMessage": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "AppendToArrayVariable",
+                            "inputs": {
+                                "name": "LogMessage",
+                                "value": {
+                                    "CurrentStep": "Init all variables",
+                                    "DateTime": "@{utcNow()}",
+                                    "NextStep": "Import job"
+                                }
+                            }
+                        },
+                        "DEV_Logging": {
+                            "runAfter": {
+                                "Import_job": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Workflow",
+                            "inputs": {
+                                "body": {
+                                    "ArrayOfLogs": "@variables('LogMessage')",
+                                    "BusinessEventId": "@variables('BusinessEventId')",
+                                    "ContentData": "@body('Parse_Message')?['ContentData']",
+                                    "CustomErrorMessage": "@variables('ErrorMessage')",
+                                    "DataPackageURL": "@variables('FileUrl')",
+                                    "EnqueuedTimeUtc": "@body('Parse_Message')?['Properties']?['EnqueuedTimeUtc']",
+                                    "LogicAppExecutionId": "@body('Parse_Workflow')?['run']?['name']",
+                                    "LogicAppName": "@body('Parse_Workflow')?['name']",
+                                    "LogicAppRunId": "@body('Parse_Workflow')?['run']?['id']",
+                                    "LogsType": "LogicAppMain",
+                                    "MessageId": "@triggerBody()?['MessageId']",
+                                    "Status": "@variables('Status')"
+                                },
+                                "host": {
+                                    "triggerName": "manual",
+                                    "workflow": {
+                                        "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Logic/workflows/DEV_Logging"
+                                    }
+                                }
+                            }
+                        },
+                        "Import_job": {
+                            "actions": {
+                                "Append_to_LogMessage_2": {
+                                    "runAfter": {
+                                        "Set_variable_Status": [
+                                            "Succeeded",
+                                            "Skipped"
+                                        ],
+                                        "Set_variable_Status_1": [
+                                            "Succeeded",
+                                            "Skipped"
+                                        ],
+                                        "Set_variable_Status_2": [
+                                            "Succeeded",
+                                            "Skipped"
+                                        ],
+                                        "Set_variable_Status_3": [
+                                            "Succeeded",
+                                            "Skipped"
+                                        ]
+                                    },
+                                    "type": "AppendToArrayVariable",
+                                    "inputs": {
+                                        "name": "LogMessage",
+                                        "value": {
+                                            "CurrentStep": "Import job",
+                                            "DateTime": "@{utcNow()}​",
+                                            "NextStep": ""
+                                        }
+                                    }
+                                },
+                                "Get_Azure_Write_URL": {
+                                    "runAfter": {},
+                                    "type": "Http",
+                                    "inputs": {
+                                        "authentication": {
+                                            "audience": "@variables('Audience')",
+                                            "clientId": "@variables('ClientId')",
+                                            "secret": "@variables('ClientSecret')",
+                                            "tenant": "@variables('TenantId')",
+                                            "type": "ActiveDirectoryOAuth"
+                                        },
+                                        "body": {
+                                            "uniqueFileName": "@{variables('PackageName')}"
+                                        },
+                                        "method": "POST",
+                                        "uri": "@{concat(variables('BaseURL'),'.GetAzureWriteUrl')}"
+                                    }
+                                },
+                                "Get_Package_File_from_external_source": {
+                                    "runAfter": {
+                                        "Parse_Value_Write_URL_response": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "method": "GET",
+                                        "uri": "@variables('FileUrl')"
+                                    }
+                                },
+                                "Import_Package": {
+                                    "runAfter": {
+                                        "Put_Package_File": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "authentication": {
+                                            "audience": "@variables('Audience')",
+                                            "clientId": "@variables('ClientId')",
+                                            "secret": "@variables('ClientSecret')",
+                                            "tenant": "@variables('TenantId')",
+                                            "type": "ActiveDirectoryOAuth"
+                                        },
+                                        "body": {
+                                            "definitionGroupId": "@{variables('DefenitionGroupId')}",
+                                            "execute": true,
+                                            "executionId": "",
+                                            "legalEntityId": "@{variables('LegalEntityId')}",
+                                            "overwrite": true,
+                                            "packageUrl": "@{body('Parse_Value_Write_URL_response')?['BlobUrl']}"
+                                        },
+                                        "method": "POST",
+                                        "uri": "@{concat(variables('BaseURL'),'.ImportFromPackage')}"
+                                    }
+                                },
+                                "Parse_Get_Azure_Write_URL_response": {
+                                    "runAfter": {
+                                        "Get_Azure_Write_URL": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@body('Get_Azure_Write_URL')",
+                                        "schema": {
+                                            "properties": {
+                                                "@@odata.context": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Parse_Get_Blob_Header": {
+                                    "runAfter": {
+                                        "Get_Package_File_from_external_source": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@outputs('Get_Package_File_from_external_source')['headers']",
+                                        "schema": {
+                                            "properties": {
+                                                "Accept-Ranges": {
+                                                    "type": "string"
+                                                },
+                                                "Content-Length": {
+                                                    "type": "string"
+                                                },
+                                                "Content-Type": {
+                                                    "type": "string"
+                                                },
+                                                "Date": {
+                                                    "type": "string"
+                                                },
+                                                "ETag": {
+                                                    "type": "string"
+                                                },
+                                                "Last-Modified": {
+                                                    "type": "string"
+                                                },
+                                                "Server": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-blob-type": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-creation-time": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-lease-state": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-lease-status": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-request-id": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-server-encrypted": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-version": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Parse_JSON": {
+                                    "runAfter": {
+                                        "Get_Azure_Write_URL": [
+                                            "TimedOut",
+                                            "Failed"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@actions('Get_Azure_Write_URL')",
+                                        "schema": {
+                                            "properties": {
+                                                "clientTrackingId": {
+                                                    "type": "string"
+                                                },
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "endTime": {
+                                                    "type": "string"
+                                                },
+                                                "error": {
+                                                    "properties": {
+                                                        "code": {
+                                                            "type": "string"
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "inputs": {
+                                                    "properties": {
+                                                        "authentication": {
+                                                            "properties": {
+                                                                "audience": {
+                                                                    "type": "string"
+                                                                },
+                                                                "clientId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "secret": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tenant": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "body": {
+                                                            "properties": {
+                                                                "definitionGroupId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "executionId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "legalEntityId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "packageName": {
+                                                                    "type": "string"
+                                                                },
+                                                                "reExecute": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "method": {
+                                                            "type": "string"
+                                                        },
+                                                        "uri": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "retryHistory": {
+                                                    "items": {
+                                                        "properties": {
+                                                            "clientRequestId": {
+                                                                "type": "string"
+                                                            },
+                                                            "code": {
+                                                                "type": "string"
+                                                            },
+                                                            "endTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "error": {
+                                                                "properties": {
+                                                                    "error": {
+                                                                        "properties": {
+                                                                            "code": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "message": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "startTime": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "startTime",
+                                                            "endTime",
+                                                            "code",
+                                                            "clientRequestId",
+                                                            "error"
+                                                        ],
+                                                        "type": "object"
+                                                    },
+                                                    "type": "array"
+                                                },
+                                                "startTime": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "trackingId": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Parse_JSON_2": {
+                                    "runAfter": {
+                                        "Get_Package_File_from_external_source": [
+                                            "Failed",
+                                            "TimedOut"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@actions('Get_Package_File_from_external_source')",
+                                        "schema": {
+                                            "properties": {
+                                                "clientTrackingId": {
+                                                    "type": "string"
+                                                },
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "endTime": {
+                                                    "type": "string"
+                                                },
+                                                "error": {
+                                                    "properties": {
+                                                        "code": {
+                                                            "type": "string"
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "inputs": {
+                                                    "properties": {
+                                                        "authentication": {
+                                                            "properties": {
+                                                                "audience": {
+                                                                    "type": "string"
+                                                                },
+                                                                "clientId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "secret": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tenant": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "body": {
+                                                            "properties": {
+                                                                "definitionGroupId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "executionId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "legalEntityId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "packageName": {
+                                                                    "type": "string"
+                                                                },
+                                                                "reExecute": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "method": {
+                                                            "type": "string"
+                                                        },
+                                                        "uri": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "retryHistory": {
+                                                    "items": {
+                                                        "properties": {
+                                                            "clientRequestId": {
+                                                                "type": "string"
+                                                            },
+                                                            "code": {
+                                                                "type": "string"
+                                                            },
+                                                            "endTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "error": {
+                                                                "properties": {
+                                                                    "error": {
+                                                                        "properties": {
+                                                                            "code": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "message": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "startTime": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "startTime",
+                                                            "endTime",
+                                                            "code",
+                                                            "clientRequestId",
+                                                            "error"
+                                                        ],
+                                                        "type": "object"
+                                                    },
+                                                    "type": "array"
+                                                },
+                                                "startTime": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "trackingId": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Parse_JSON_3": {
+                                    "runAfter": {
+                                        "Import_Package": [
+                                            "Failed",
+                                            "TimedOut"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@actions('Import_Package')",
+                                        "schema": {
+                                            "properties": {
+                                                "clientTrackingId": {
+                                                    "type": "string"
+                                                },
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "endTime": {
+                                                    "type": "string"
+                                                },
+                                                "error": {
+                                                    "properties": {
+                                                        "code": {
+                                                            "type": "string"
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "inputs": {
+                                                    "properties": {
+                                                        "authentication": {
+                                                            "properties": {
+                                                                "audience": {
+                                                                    "type": "string"
+                                                                },
+                                                                "clientId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "secret": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tenant": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "body": {
+                                                            "properties": {
+                                                                "definitionGroupId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "executionId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "legalEntityId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "packageName": {
+                                                                    "type": "string"
+                                                                },
+                                                                "reExecute": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "method": {
+                                                            "type": "string"
+                                                        },
+                                                        "uri": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "retryHistory": {
+                                                    "items": {
+                                                        "properties": {
+                                                            "clientRequestId": {
+                                                                "type": "string"
+                                                            },
+                                                            "code": {
+                                                                "type": "string"
+                                                            },
+                                                            "endTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "error": {
+                                                                "properties": {
+                                                                    "error": {
+                                                                        "properties": {
+                                                                            "code": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "message": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "startTime": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "startTime",
+                                                            "endTime",
+                                                            "code",
+                                                            "clientRequestId",
+                                                            "error"
+                                                        ],
+                                                        "type": "object"
+                                                    },
+                                                    "type": "array"
+                                                },
+                                                "startTime": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "trackingId": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Parse_Value_Write_URL_response": {
+                                    "runAfter": {
+                                        "Parse_Get_Azure_Write_URL_response": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@replace(body('Parse_Get_Azure_Write_URL_response')?['value'],'\\','')",
+                                        "schema": {
+                                            "properties": {
+                                                "BlobId": {
+                                                    "type": "string"
+                                                },
+                                                "BlobUrl": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Put_Package_File": {
+                                    "runAfter": {
+                                        "Parse_Get_Blob_Header": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "body": "@body('Get_Package_File_from_external_source')",
+                                        "headers": {
+                                            "Content-Length": "@body('Parse_Get_Blob_Header')?['Content-Length']",
+                                            "Content-Type": "@body('Parse_Get_Blob_Header')?['Content-Type']",
+                                            "x-ms-blob-type": "@body('Parse_Get_Blob_Header')?['x-ms-blob-type']",
+                                            "x-ms-date": "@{utcNow()}",
+                                            "x-ms-version": "@body('Parse_Get_Blob_Header')?['x-ms-version']"
+                                        },
+                                        "method": "PUT",
+                                        "uri": "@body('Parse_Value_Write_URL_response')?['BlobUrl']"
+                                    }
+                                },
+                                "Set_variable_Message_1": {
+                                    "runAfter": {
+                                        "Parse_JSON": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "ErrorMessage",
+                                        "value": "@body('Parse_JSON')?['error']?['message']"
+                                    }
+                                },
+                                "Set_variable_Message_2": {
+                                    "runAfter": {
+                                        "Parse_JSON_2": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "ErrorMessage",
+                                        "value": "@body('Parse_JSON_2')?['error']?['message']"
+                                    }
+                                },
+                                "Set_variable_Message_3": {
+                                    "runAfter": {
+                                        "Parse_JSON_3": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "ErrorMessage",
+                                        "value": "@body('Parse_JSON_3')?['error']?['message']"
+                                    }
+                                },
+                                "Set_variable_Status": {
+                                    "runAfter": {
+                                        "Import_Package": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "Status",
+                                        "value": "OK"
+                                    }
+                                },
+                                "Set_variable_Status_1": {
+                                    "runAfter": {
+                                        "Set_variable_Message_1": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "Status",
+                                        "value": "Error"
+                                    }
+                                },
+                                "Set_variable_Status_2": {
+                                    "runAfter": {
+                                        "Set_variable_Message_2": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "Status",
+                                        "value": "Error"
+                                    }
+                                },
+                                "Set_variable_Status_3": {
+                                    "runAfter": {
+                                        "Set_variable_Message_3": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "Status",
+                                        "value": "Error"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Append_to_LogMessage_1": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Scope"
+                        },
+                        "Initialize_Audience": {
+                            "runAfter": {
+                                "Initialize_BaseURL": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Audience",
+                                        "type": "string",
+                                        "value": "@{concat(body('Parse_Content')?['D365EnvironmentURL'],'/')}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_BaseURL": {
+                            "runAfter": {
+                                "Initialize_TenantId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "BaseURL",
+                                        "type": "string",
+                                        "value": "@{concat(body('Parse_Content')?['D365EnvironmentURL'],'/data/DataManagementDefinitionGroups/Microsoft.Dynamics.DataEntities')}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_BusinessEventId": {
+                            "runAfter": {
+                                "Initialize_ExecutionStatus": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "BusinessEventId",
+                                        "type": "string",
+                                        "value": "@{guid()}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ClientId": {
+                            "runAfter": {
+                                "Initialize_Audience": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ClientId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['AzureApplicationId']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ClientSecret": {
+                            "runAfter": {
+                                "Initialize_ClientId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ClientSecret",
+                                        "type": "string",
+                                        "value": "@{base64ToString(body('Parse_Content')?['AzureApplicationSecret'])}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Content": {
+                            "runAfter": {
+                                "Parse_Message": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Content",
+                                        "type": "string",
+                                        "value": "@{base64ToString(body('Parse_Message')?['ContentData'])}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_DefenitionGroupId": {
+                            "runAfter": {
+                                "Initialize_LegalEntity": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "DefenitionGroupId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['DefinitionGroupName']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Direction": {
+                            "runAfter": {
+                                "Parse_Content": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Direction",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['DataMigrationDirection']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ErrorMessage": {
+                            "runAfter": {
+                                "Initialize_FileUrl": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ErrorMessage",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ExecutionId": {
+                            "runAfter": {
+                                "Initialize_PackageName": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ExecutionId",
+                                        "type": "string",
+                                        "value": "@{guid()}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ExecutionStatus": {
+                            "runAfter": {
+                                "Initialize_ExecutionId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ExecutionStatus",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_ExternalSystem": {
+                            "runAfter": {
+                                "Initialize_Direction": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "ExternalSystem",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['ExternalSystem']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_FileUrl": {
+                            "runAfter": {
+                                "Initialize_BusinessEventId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "FileUrl",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['FileUrl']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_LegalEntity": {
+                            "runAfter": {
+                                "Initialize_ClientSecret": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "LegalEntityId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['LegalEntity']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_LogMessage": {
+                            "runAfter": {
+                                "Initialize_Status": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "LogMessage",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_PackageName": {
+                            "runAfter": {
+                                "Initialize_DefenitionGroupId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "PackageName",
+                                        "type": "string",
+                                        "value": "@{concat(variables('runId'),'.zip')}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_SessionId": {
+                            "runAfter": {
+                                "Initialize_ExternalSystem": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "SessionId",
+                                        "type": "string",
+                                        "value": "@{body('Parse_Message')?['SessionId']}"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_Status": {
+                            "runAfter": {
+                                "Initialize_ErrorMessage": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Status",
+                                        "type": "string",
+                                        "value": "OK"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_TenantId": {
+                            "runAfter": {
+                                "Initialize_SessionId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "TenantId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Content')?['AzureTenantId']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_runId": {
+                            "runAfter": {
+                                "Parse_Workflow": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "runId",
+                                        "type": "string",
+                                        "value": "@body('Parse_Workflow')?['run']?['name']"
+                                    }
+                                ]
+                            }
+                        },
+                        "Parse_Content": {
+                            "runAfter": {
+                                "Initialize_Content": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@variables('Content')",
+                                "schema": {
+                                    "properties": {
+                                        "AzureApplicationId": {
+                                            "type": "string"
+                                        },
+                                        "AzureApplicationSecret": {
+                                            "type": "string"
+                                        },
+                                        "AzureTenantId": {
+                                            "type": "string"
+                                        },
+                                        "BusinessEventId": {
+                                            "type": "string"
+                                        },
+                                        "ControlNumber": {
+                                            "type": "integer"
+                                        },
+                                        "D365EnvironmentURL": {
+                                            "type": "string"
+                                        },
+                                        "DataManagementIntegrationId": {
+                                            "type": "string"
+                                        },
+                                        "DataManagementIntegrationUniqueId": {
+                                            "type": "string"
+                                        },
+                                        "DataMigrationDirection": {
+                                            "type": "string"
+                                        },
+                                        "DataProjectErrorPath": {
+                                            "type": "string"
+                                        },
+                                        "DataProjectPath": {
+                                            "type": "string"
+                                        },
+                                        "DataProjectProcessedPath": {
+                                            "type": "string"
+                                        },
+                                        "DefinitionGroupName": {
+                                            "type": "string"
+                                        },
+                                        "EnvironmentName": {
+                                            "type": "string"
+                                        },
+                                        "EventId": {
+                                            "type": "string"
+                                        },
+                                        "EventTime": {
+                                            "type": "string"
+                                        },
+                                        "ExternalSystem": {
+                                            "type": "string"
+                                        },
+                                        "ExternalSystemDescription": {
+                                            "type": "string"
+                                        },
+                                        "FileUrl": {
+                                            "type": "string"
+                                        },
+                                        "LegalEntity": {
+                                            "type": "string"
+                                        },
+                                        "MajorVersion": {
+                                            "type": "integer"
+                                        },
+                                        "MinorVersion": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Parse_Message": {
+                            "runAfter": {
+                                "Initialize_runId": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@triggerBody()",
+                                "schema": {
+                                    "properties": {
+                                        "ContentData": {
+                                            "type": "string"
+                                        },
+                                        "ContentTransferEncoding": {
+                                            "type": "string"
+                                        },
+                                        "ContentType": {
+                                            "type": "string"
+                                        },
+                                        "CorrelationId": {},
+                                        "Label": {},
+                                        "LockToken": {
+                                            "type": "string"
+                                        },
+                                        "MessageId": {
+                                            "type": "string"
+                                        },
+                                        "Properties": {
+                                            "properties": {
+                                                "BusinessEventCategory": {
+                                                    "type": "string"
+                                                },
+                                                "BusinessEventId": {
+                                                    "type": "string"
+                                                },
+                                                "DeliveryCount": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedSequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "EventId": {
+                                                    "type": "string"
+                                                },
+                                                "ExpiresAtUtc": {
+                                                    "type": "string"
+                                                },
+                                                "LegalEntity": {
+                                                    "type": "string"
+                                                },
+                                                "LockToken": {
+                                                    "type": "string"
+                                                },
+                                                "LockedUntilUtc": {
+                                                    "type": "string"
+                                                },
+                                                "MessageId": {
+                                                    "type": "string"
+                                                },
+                                                "ScheduledEnqueueTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "SequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "Size": {
+                                                    "type": "string"
+                                                },
+                                                "State": {
+                                                    "type": "string"
+                                                },
+                                                "TimeToLive": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "ReplyTo": {},
+                                        "ReplyToSessionId": {},
+                                        "ScheduledEnqueueTimeUtc": {
+                                            "type": "string"
+                                        },
+                                        "SequenceNumber": {
+                                            "type": "integer"
+                                        },
+                                        "SessionId": {},
+                                        "TimeToLive": {
+                                            "type": "string"
+                                        },
+                                        "To": {}
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Parse_Workflow": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@workflow()",
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "location": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "run": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "tags": {
+                                            "properties": {},
+                                            "type": "object"
+                                        },
+                                        "type": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": "[parameters('workflows_DEV_ImportMain_parameters_$connections')]"
+                    }
+                },
+                "state": "Enabled"
+            },
+            "scale": null,
+            "tags": {},
+            "type": "Microsoft.Logic/workflows"
+        }
+    ],
+    "variables": {}
+}
