@@ -2,32 +2,62 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "workflows_DEV_ExportMain_name": {
+        "logicAppName": {
             "defaultValue": "DEV_ExportMain",
             "type": "string"
         },
-        "workflows_DEV_ExportMain_parameters_connections": {
-            "defaultValue": {
-                "azureblob": {
-                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/azureblob-1",
-                    "connectionName": "azureblob-1",
-                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/azureblob"
-                },
-                "servicebus_1": {
-                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
-                    "connectionName": "servicebus-1",
-                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
-                }
-            },
-            "type": "Object"
+        "logicAppLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+              "[resourceGroup().location]",
+              "eastasia",
+              "southeastasia",
+              "centralus",
+              "eastus",
+              "eastus2",
+              "westus",
+              "northcentralus",
+              "southcentralus",
+              "northeurope",
+              "westeurope",
+              "japanwest",
+              "japaneast",
+              "brazilsouth",
+              "australiaeast",
+              "australiasoutheast",
+              "southindia",
+              "centralindia",
+              "westindia",
+              "canadacentral",
+              "canadaeast",
+              "uksouth",
+              "ukwest",
+              "westcentralus",
+              "westus2"
+            ],
+            "metadata": {
+              "description": "Location of the Logic App."
+            }
+        },
+        "servicebus_Connection_Name": {
+            "type": "string",
+            "defaultValue": "servicebus"
+        },
+        "azureblob_Connection_Name": {
+            "type": "string",
+            "defaultValue": "azureblob"
         }
     },
     "resources": [
         {
             "apiVersion": "2017-07-01",
-            "dependsOn": [],
-            "location": "eastus",
-            "name": "[parameters('workflows_DEV_ExportMain_name')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]",
+                "[resourceId('Microsoft.Web/connections', parameters('azureblob_Connection_Name'))]"
+            ],
+            "location":  "[parameters('logicAppLocation')]",
+            "name": "[parameters('logicAppName')]",
             "properties": {
                 "definition": {
                     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
@@ -35,15 +65,15 @@
                     "parameters": {
                         "$connections": {
                             "defaultValue": {
-                                "azureblob": {
-                                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/azureblob-1",
-                                    "connectionName": "azureblob-1",
-                                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/azureblob"
+                                "azureblob_1": {
+                                    "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azureblob_Connection_Name'))]",
+                                    "connectionName": "[parameters('azureblob_Connection_Name')]",
+                                    "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/azureblob')]"
                                 },
                                 "servicebus_1": {
-                                    "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/servicebus-1",
-                                    "connectionName": "servicebus-1",
-                                    "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                                    "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]",
+                                    "connectionName": "[parameters('servicebus_Connection_Name')]",
+                                    "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
                                 }
                             },
                             "type": "Object"
@@ -207,7 +237,7 @@
                                 "host": {
                                     "triggerName": "manual",
                                     "workflow": {
-                                        "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Logic/workflows/DEV_Logging"
+                                        "id": "[resourceId('Microsoft.Logic/workflows', 'DEV_Logging')]"
                                     }
                                 }
                             }
@@ -256,7 +286,7 @@
                                         },
                                         "host": {
                                             "connection": {
-                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                                "name": "@parameters('$connections')['azureblob_1']['connectionId']"
                                             }
                                         },
                                         "method": "post",
@@ -280,7 +310,7 @@
                                         },
                                         "host": {
                                             "connection": {
-                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                                "name": "@parameters('$connections')['azureblob_1']['connectionId']"
                                             }
                                         },
                                         "method": "post",
@@ -1504,7 +1534,18 @@
                 },
                 "parameters": {
                     "$connections": {
-                        "value": "[parameters('workflows_DEV_ExportMain_parameters_connections')]"
+                        "value": {
+                            "azureblob_1": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azureblob_Connection_Name'))]",
+                                "connectionName": "[parameters('azureblob_Connection_Name')]",
+                                "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/azureblob')]"
+                            },
+                            "servicebus_1": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]",
+                                "connectionName": "[parameters('servicebus_Connection_Name')]",
+                                "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
+                            }
+                        }
                     }
                 },
                 "state": "Enabled"
@@ -1512,6 +1553,30 @@
             "scale": null,
             "tags": {},
             "type": "Microsoft.Logic/workflows"
+        },
+        {
+          "type": "MICROSOFT.WEB/CONNECTIONS",
+          "apiVersion": "2016-06-01",
+          "name": "[parameters('azureblob_Connection_Name')]",
+          "location": "[parameters('logicAppLocation')]",
+          "properties": {
+            "api": {
+              "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'azureblob')]"
+            },
+            "displayName": "[parameters('azureblob_Connection_Name')]"
+          }
+        },
+        {
+          "type": "MICROSOFT.WEB/CONNECTIONS",
+          "apiVersion": "2016-06-01",
+          "name": "[parameters('servicebus_Connection_Name')]",
+          "location": "[parameters('logicAppLocation')]",
+          "properties": {
+            "api": {
+              "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'servicebus')]"
+            },
+            "displayName": "[parameters('servicebus_Connection_Name')]"
+          }
         }
     ],
     "variables": {}
