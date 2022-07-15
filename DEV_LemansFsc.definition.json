@@ -1,0 +1,225 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_devlemansfsc_name": {
+            "defaultValue": "devlemansfsc",
+            "type": "String"
+        },
+        "serverfarms_ASP_EDDLMC8563IntegrationEXD365_89e3_externalid": {
+            "defaultValue": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/serverfarms/ASP-EDDLMC8563IntegrationEXD365-89e3",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-03-01",
+            "name": "[parameters('sites_devlemansfsc_name')]",
+            "location": "East US",
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/bdf9b931-8e26-4a8a-9785-4c46d527eed5/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/microsoft.insights/components/exd365lmc8563",
+                "hidden-link: /app-insights-instrumentation-key": "04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/"
+            },
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_devlemansfsc_name'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_devlemansfsc_name'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[parameters('serverfarms_ASP_EDDLMC8563IntegrationEXD365_89e3_externalid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 200,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "customDomainVerificationId": "237C1F05762DC5454C02ECE476A61F527FEEE666052FF7650AA3536D17704362",
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_devlemansfsc_name'), '/ftp')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_devlemansfsc_name'))]"
+            ],
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/bdf9b931-8e26-4a8a-9785-4c46d527eed5/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/microsoft.insights/components/exd365lmc8563",
+                "hidden-link: /app-insights-instrumentation-key": "04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/"
+            },
+            "properties": {
+                "allow": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_devlemansfsc_name'), '/scm')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_devlemansfsc_name'))]"
+            ],
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/bdf9b931-8e26-4a8a-9785-4c46d527eed5/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/microsoft.insights/components/exd365lmc8563",
+                "hidden-link: /app-insights-instrumentation-key": "04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/"
+            },
+            "properties": {
+                "allow": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_devlemansfsc_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_devlemansfsc_name'))]"
+            ],
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/bdf9b931-8e26-4a8a-9785-4c46d527eed5/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/microsoft.insights/components/exd365lmc8563",
+                "hidden-link: /app-insights-instrumentation-key": "04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=04dc16d1-5ebc-4e7f-9a14-f4ae5d340cd4;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/"
+            },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v6.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "acrUseManagedIdentityCreds": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$devlemansfsc",
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "vnetRouteAllEnabled": false,
+                "vnetPrivatePortsCount": 0,
+                "cors": {
+                    "allowedOrigins": [
+                        "https://portal.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "scmMinTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "preWarmedInstanceCount": 0,
+                "functionAppScaleLimit": 200,
+                "functionsRuntimeScaleMonitoringEnabled": false,
+                "minimumElasticInstanceCount": 0,
+                "azureStorageAccounts": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_devlemansfsc_name'), '/Compress')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_devlemansfsc_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://devlemansfsc.azurewebsites.net/admin/vfs/site/wwwroot/Compress/",
+                "script_href": "https://devlemansfsc.azurewebsites.net/admin/vfs/site/wwwroot/Compress/run.csx",
+                "config_href": "https://devlemansfsc.azurewebsites.net/admin/vfs/site/wwwroot/Compress/function.json",
+                "test_data_href": "https://devlemansfsc.azurewebsites.net/admin/vfs/data/Functions/sampledata/Compress.dat",
+                "href": "https://devlemansfsc.azurewebsites.net/admin/functions/Compress",
+                "config": {},
+                "test_data": "{\"method\":\"post\",\"queryStringParams\":[],\"headers\":[],\"body\":\"{\\\"files\\\":\\n[\\n\\t{\\n\\t\\t\\\"name\\\": \\\"1b3059f1-8fb2-4292-aed9-418f70ed5267.xml\\\",\\n\\t\\t\\\"url\\\": \\\"https://devimportexportblob.blob.core.windows.net/import/1b3059f1-8fb2-4292-aed9-418f70ed5267.xml?sv=2018-03-28&sr=b&sig=3j8BduNPW2n0siP6YH0kgp4AVS79a9FXvl5XWb6fBL8%3D&se=2022-06-30T07%3A39%3A39Z&sp=r\\\"\\n\\t},\\n\\t{\\n\\t\\t\\\"name\\\": \\\"2be360d6-5171-1d21-8c3f-6077403f13ae.xml\\\",\\n\\t\\t\\\"url\\\": \\\"https://devimportexportblob.blob.core.windows.net/import/2be360d6-5171-1d21-8c3f-6077403f13ae.xml?sv=2018-03-28&sr=b&sig=1MWy2Lwhj34oNWboJ1FdlI2f5i68iuXYlDbjR2ANdrg%3D&se=2022-06-30T07%3A39%3A39Z&sp=r\\\"\\n\\t},\\n\\t{\\n\\t\\t\\\"name\\\": \\\"e928a980-7908-efc0-d651-07eaaabd8da6.xml\\\",\\n\\t\\t\\\"url\\\": \\\"https://devimportexportblob.blob.core.windows.net/import/e928a980-7908-efc0-d651-07eaaabd8da6.xml?sv=2018-03-28&sr=b&sig=npoSdzSJxJu%2Bol9q1Ndu7ShO1qIXe9x28XQodrJnaj0%3D&se=2022-06-30T07%3A39%3A39Z&sp=r\\\"\\n\\t}\\n]}\"}",
+                "invoke_url_template": "https://devlemansfsc.azurewebsites.net/api/compress",
+                "language": "CSharp",
+                "isDisabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_devlemansfsc_name'), '/', parameters('sites_devlemansfsc_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_devlemansfsc_name'))]"
+            ],
+            "properties": {
+                "siteName": "devlemansfsc",
+                "hostNameType": "Verified"
+            }
+        }
+    ]
+}

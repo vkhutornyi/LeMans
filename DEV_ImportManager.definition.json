@@ -39,23 +39,19 @@
             "metadata": {
               "description": "Location of the Logic App."
             }
-        },        
-        "workflows_DEV_ImportManager_parameters_$connections": {
-            "defaultValue": {
-                "servicebus_1": {
-                    "connectionId": "[concat('/subscriptions/',subscription().id,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Web/connections/servicebus-1')]",
-                    "connectionName": "servicebus-1",
-                    "id": "[concat('/subscriptions/',subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
-                }
-            },
-            "type": "Object"
+        },
+        "servicebus_Connection_Name": {
+            "type": "string",
+            "defaultValue": "servicebus"
         }
     },
     "resources": [
         {
             "apiVersion": "2017-07-01",
-            "dependsOn": [],
-            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]"
+            ],
+            "location": "[parameters('logicAppLocation')]",
             "name": "[parameters('logicAppName')]",
             "properties": {
                 "definition": {
@@ -65,9 +61,9 @@
                         "$connections": {
                             "defaultValue": {
                                 "servicebus_1": {
-                                    "connectionId": "[concat('/subscriptions/',subscription().id,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Web/connections/servicebus-1')]",
-                                    "connectionName": "servicebus-1",
-                                    "id": "[concat('/subscriptions/',subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
+                                    "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]",
+                                    "connectionName": "[parameters('servicebus_Connection_Name')]",
+                                    "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
                                 }
                             },
                             "type": "Object"
@@ -154,7 +150,7 @@
                                 "host": {
                                     "triggerName": "manual",
                                     "workflow": {
-                                        "id": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Logic/workflows/DEV_Logging"
+                                        "id": "[resourceId('Microsoft.Logic/workflows', 'DEV_Logging')]"
                                     }
                                 }
                             }
@@ -473,7 +469,13 @@
                 },
                 "parameters": {
                     "$connections": {
-                        "value": "[parameters('workflows_DEV_ImportManager_parameters_$connections')]"
+                        "value": {
+                            "servicebus_1": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]",
+                                "connectionName": "[parameters('servicebus_Connection_Name')]",
+                                "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/',parameters('logicAppLocation'),'/managedApis/servicebus')]"
+                            }
+                        }
                     }
                 },
                 "state": "Enabled"
@@ -481,6 +483,18 @@
             "scale": null,
             "tags": {},
             "type": "Microsoft.Logic/workflows"
+        },
+        {
+          "type": "MICROSOFT.WEB/CONNECTIONS",
+          "apiVersion": "2016-06-01",
+          "name": "[parameters('servicebus_Connection_Name')]",
+          "location": "[parameters('logicAppLocation')]",
+          "properties": {
+            "api": {
+              "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'servicebus')]"
+            },
+            "displayName": "[parameters('servicebus_Connection_Name')]"
+          }
         }
     ],
     "variables": {}

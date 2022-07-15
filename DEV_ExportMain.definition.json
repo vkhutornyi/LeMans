@@ -6,7 +6,7 @@
             "defaultValue": "DEV_ExportMain",
             "type": "string"
         },
-        "workflows_DEV_ExportMain_parameters_$connections": {
+        "workflows_DEV_ExportMain_parameters_connections": {
             "defaultValue": {
                 "azureblob": {
                     "connectionId": "/subscriptions/0d659cb8-c1a1-4477-b57d-8146f6cba02c/resourceGroups/EDD-LMC-8563-Integration-EX-D365/providers/Microsoft.Web/connections/azureblob-1",
@@ -1504,7 +1504,7 @@
                 },
                 "parameters": {
                     "$connections": {
-                        "value": "[parameters('workflows_DEV_ExportMain_parameters_$connections')]"
+                        "value": "[parameters('workflows_DEV_ExportMain_parameters_connections')]"
                     }
                 },
                 "state": "Enabled"
