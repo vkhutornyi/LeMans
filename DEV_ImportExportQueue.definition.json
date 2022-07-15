@@ -6,6 +6,10 @@
             "defaultValue": "DEVImportExportQueue",
             "type": "string"
         },
+        "servicebusConnectionName": {
+            "defaultValue": "servicebus",
+            "type": "string"
+        },        
         "servicebusLocation": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
@@ -195,6 +199,23 @@
                 "enablePartitioning": false,
                 "enableExpress": false
             }
+        },
+        {
+          "type": "Microsoft.Web/connections",
+          "name": "[parameters('serviceBusConnectionName')]",
+          "apiVersion": "2016-06-01",
+          "location": "[parameters('servicebusLocation')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.ServiceBus/namespaces/AuthorizationRules', parameters('serviceBusName'), 'RootManageSharedAccessKey')]"
+          ],
+          "properties": {
+            "api": {
+              "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('serviceBusConnectionName'), 'servicebus')]"
+            },
+            "parameterValues": {
+              "connectionString": "[listKeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusName'), 'RootManageSharedAccessKey'), '2017-04-01').primaryConnectionString]"
+            }
+          }
         }
     ]
 }
