@@ -2,18 +2,53 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "namespaces_DEVImportExportQueue_name": {
+        "servicebusName": {
             "defaultValue": "DEVImportExportQueue",
-            "type": "String"
+            "type": "string"
+        },
+        "servicebusLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "allowedValues": [
+              "[resourceGroup().location]",
+              "eastasia",
+              "southeastasia",
+              "centralus",
+              "eastus",
+              "eastus2",
+              "westus",
+              "northcentralus",
+              "southcentralus",
+              "northeurope",
+              "westeurope",
+              "japanwest",
+              "japaneast",
+              "brazilsouth",
+              "australiaeast",
+              "australiasoutheast",
+              "southindia",
+              "centralindia",
+              "westindia",
+              "canadacentral",
+              "canadaeast",
+              "uksouth",
+              "ukwest",
+              "westcentralus",
+              "westus2"
+            ]
         }
     },
-    "variables": {},
+    "variables": {
+        "defaultSASKeyName": "RootManageSharedAccessKey",
+        "authRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('servicebusName'), variables('defaultSASKeyName'))]",
+        "sbVersion": "2017-04-01"
+    },
     "resources": [
         {
             "type": "Microsoft.ServiceBus/namespaces",
             "apiVersion": "2022-01-01-preview",
-            "name": "[parameters('namespaces_DEVImportExportQueue_name')]",
-            "location": "East US",
+            "name": "[parameters('servicebusName')]",
+            "location": "[parameters('servicebusLocation')]",
             "sku": {
                 "name": "Basic",
                 "tier": "Basic"
@@ -28,10 +63,10 @@
         {
             "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
             "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/RootManageSharedAccessKey')]",
-            "location": "East US",
+            "name": "[concat(parameters('servicebusName'), '/RootManageSharedAccessKey')]",
+            "location": "[parameters('servicebusLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('servicebusName'))]"
             ],
             "properties": {
                 "rights": [
@@ -42,27 +77,12 @@
             }
         },
         {
-            "type": "Microsoft.ServiceBus/namespaces/networkRuleSets",
-            "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/default')]",
-            "location": "East US",
-            "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
-            ],
-            "properties": {
-                "publicNetworkAccess": "Enabled",
-                "defaultAction": "Allow",
-                "virtualNetworkRules": [],
-                "ipRules": []
-            }
-        },
-        {
             "type": "Microsoft.ServiceBus/namespaces/queues",
             "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/exportbusinessevent')]",
-            "location": "eastus",
+            "name": "[concat(parameters('servicebusName'), '/exportbusinessevent')]",
+            "location": "[parameters('servicebusLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('servicebusName'))]"
             ],
             "properties": {
                 "maxMessageSizeInKilobytes": 256,
@@ -76,7 +96,6 @@
                 "duplicateDetectionHistoryTimeWindow": "PT10M",
                 "maxDeliveryCount": 10,
                 "status": "Active",
-                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
                 "enablePartitioning": false,
                 "enableExpress": false
             }
@@ -84,10 +103,10 @@
         {
             "type": "Microsoft.ServiceBus/namespaces/queues",
             "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/exportex')]",
-            "location": "eastus",
+            "name": "[concat(parameters('servicebusName'), '/exportex')]",
+            "location": "[parameters('servicebusLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('servicebusName'))]"
             ],
             "properties": {
                 "maxMessageSizeInKilobytes": 256,
@@ -101,7 +120,6 @@
                 "duplicateDetectionHistoryTimeWindow": "PT10M",
                 "maxDeliveryCount": 10,
                 "status": "Active",
-                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
                 "enablePartitioning": false,
                 "enableExpress": false
             }
@@ -109,10 +127,10 @@
         {
             "type": "Microsoft.ServiceBus/namespaces/queues",
             "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/importbusinessevent')]",
-            "location": "eastus",
+            "name": "[concat(parameters('servicebusName'), '/importbusinessevent')]",
+            "location": "[parameters('servicebusLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('servicebusName'))]"
             ],
             "properties": {
                 "maxMessageSizeInKilobytes": 256,
@@ -126,7 +144,6 @@
                 "duplicateDetectionHistoryTimeWindow": "PT10M",
                 "maxDeliveryCount": 10,
                 "status": "Active",
-                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
                 "enablePartitioning": false,
                 "enableExpress": false
             }
@@ -134,10 +151,10 @@
         {
             "type": "Microsoft.ServiceBus/namespaces/queues",
             "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/importex')]",
-            "location": "eastus",
+            "name": "[concat(parameters('servicebusName'), '/importex')]",
+            "location": "[parameters('servicebusLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('servicebusName'))]"
             ],
             "properties": {
                 "maxMessageSizeInKilobytes": 256,
@@ -151,7 +168,6 @@
                 "duplicateDetectionHistoryTimeWindow": "PT10M",
                 "maxDeliveryCount": 10,
                 "status": "Active",
-                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
                 "enablePartitioning": false,
                 "enableExpress": false
             }
@@ -159,10 +175,10 @@
         {
             "type": "Microsoft.ServiceBus/namespaces/queues",
             "apiVersion": "2022-01-01-preview",
-            "name": "[concat(parameters('namespaces_DEVImportExportQueue_name'), '/importqueue')]",
-            "location": "eastus",
+            "name": "[concat(parameters('servicebusName'), '/importqueue')]",
+            "location": "[parameters('servicebusLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_DEVImportExportQueue_name'))]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('servicebusName'))]"
             ],
             "properties": {
                 "maxMessageSizeInKilobytes": 256,
@@ -176,7 +192,6 @@
                 "duplicateDetectionHistoryTimeWindow": "PT10M",
                 "maxDeliveryCount": 10,
                 "status": "Active",
-                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
                 "enablePartitioning": false,
                 "enableExpress": false
             }
