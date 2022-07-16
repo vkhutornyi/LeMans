@@ -1239,7 +1239,7 @@
                             "servicebus_1": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('servicebusName'))]",
                                 "connectionName": "[variables('servicebusName')]",
-                                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'servicebus')])]"
+                                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'servicebus')]"
                             }
                         }
                     }
@@ -2638,7 +2638,7 @@
                             "servicebus_1": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('servicebusName'))]",
                                 "connectionName": "[parameters('servicebusName')]",
-                                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'servicebus')])]"
+                                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'servicebus')]"
                             }
                         }
                     }
@@ -4130,7 +4130,7 @@
                             "servicebus_1": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('servicebusName'))]",
                                 "connectionName": "[variables('servicebusName')]",
-                                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'servicebus')])]"
+                                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'servicebus')]"
                             }
                         }
                     }
