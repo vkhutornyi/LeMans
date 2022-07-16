@@ -21,7 +21,8 @@
         "authRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', variables('servicebusName'), variables('defaultSASKeyName'))]",
         "sbVersion": "2017-04-01",
         "storageAccountName": "[toLower(concat(parameters('deploymentType'),'sa',uniqueString(resourceGroup().id)))]",
-        "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "keyVaultName": "[toLower(concat(parameters('deploymentType'),'kv',uniqueString(resourceGroup().id)))]"
     },
     "resources": [
         {
@@ -390,6 +391,44 @@
                     "accessKey": "[listKeys(variables('storageAccountId'), '2019-04-01').keys[0].value]"
                 }
             }
-        }        
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2021-11-01-preview",
+            "name": "[variable('keyVaultName')]",
+            "location": "eastus",
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
+                },
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "bypass": "AzureServices"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [],
+                "enabledForDeployment": false,
+                "enabledForDiskEncryption": false,
+                "enabledForTemplateDeployment": false,
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 90,
+                "enableRbacAuthorization": false
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2021-11-01-preview",
+            "name": "[concat(variable('keyVaultName'), '/devimportexportqueue')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variable('keyVaultName'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        }
     ]
 }
