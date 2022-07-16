@@ -431,7 +431,8 @@
             "properties": {
                 "attributes": {
                     "enabled": true
-                }
+                },
+                "value": ""
             }
         },
         {
