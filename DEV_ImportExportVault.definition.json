@@ -1,432 +1,54 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "workflows_DEV_Logging_name": {
-            "defaultValue": "DEV_Logging",
-            "type": "string"
-        },
-        "logicAppLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "allowedValues": [
-              "[resourceGroup().location]",
-              "eastasia",
-              "southeastasia",
-              "centralus",
-              "eastus",
-              "eastus2",
-              "westus",
-              "northcentralus",
-              "southcentralus",
-              "northeurope",
-              "westeurope",
-              "japanwest",
-              "japaneast",
-              "brazilsouth",
-              "australiaeast",
-              "australiasoutheast",
-              "southindia",
-              "centralindia",
-              "westindia",
-              "canadacentral",
-              "canadaeast",
-              "uksouth",
-              "ukwest",
-              "westcentralus",
-              "westus2"
-            ],
-            "metadata": {
-              "description": "Location of the Logic App."
-            }
+        "vaults_DEVImportExportVault_name": {
+            "defaultValue": "DEVImportExportVault",
+            "type": "String"
         }
     },
+    "variables": {},
     "resources": [
         {
-            "apiVersion": "2017-07-01",
-            "dependsOn": [],
-            "location": "[parameters('logicAppLocation')]",
-            "name": "[parameters('workflows_DEV_Logging_name')]",
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2021-11-01-preview",
+            "name": "[parameters('vaults_DEVImportExportVault_name')]",
+            "location": "eastus",
             "properties": {
-                "definition": {
-                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "triggers": {
-                        "manual": {
-                            "type": "Request",
-                            "kind": "Http",
-                            "inputs": {
-                                "method": "POST",
-                                "schema": {
-                                    "$schema": "http://json-schema.org/draft-07/schema#",
-                                    "properties": {
-                                        "ArrayOfLogs": {
-                                            "description": "Logs as Array of JSON objects",
-                                            "items": {
-                                                "properties": {
-                                                    "CurrentStep": {
-                                                        "description": "The name of the current step above",
-                                                        "title": "Current Step",
-                                                        "type": "string"
-                                                    },
-                                                    "DateTime": {
-                                                        "description": "utcNow()",
-                                                        "type": "string"
-                                                    },
-                                                    "Description": {
-                                                        "description": "Put here some step description or actual logs",
-                                                        "type": "string"
-                                                    },
-                                                    "FileName": {
-                                                        "description": "Put here full path and name of the file for import/export",
-                                                        "title": "File Name",
-                                                        "type": "string"
-                                                    },
-                                                    "NextStep": {
-                                                        "description": "The name of the next step below",
-                                                        "title": "Next Step",
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "DateTime",
-                                                    "CurrentStep"
-                                                ],
-                                                "type": "object"
-                                            },
-                                            "title": "Logs",
-                                            "type": "array"
-                                        },
-                                        "BusinessEventId": {
-                                            "description": "Business Event Id from Azure Service Bus",
-                                            "type": "string"
-                                        },
-                                        "ContentData": {
-                                            "description": "Base64 content from Azure Service Bus",
-                                            "type": "string"
-                                        },
-                                        "CustomErrorMessage": {
-                                            "description": "Error message that will help to quickly identify what is failed. FTP, FSC, Service Bus, or just put here some text",
-                                            "title": "Custom Error Message",
-                                            "type": "string"
-                                        },
-                                        "DMFExecutionId": {
-                                            "description": "Execution id from FSC system",
-                                            "title": "DMF Execution Id",
-                                            "type": "string"
-                                        },
-                                        "DataPackageURL": {
-                                            "description": "URL address of the Azure Blob Storage with file and SAS",
-                                            "title": "DataPackage URL",
-                                            "type": "string"
-                                        },
-                                        "EnqueuedTimeUtc": {
-                                            "description": "Date Time stamp from Azure Service Bus",
-                                            "type": "string"
-                                        },
-                                        "LogicAppExecutionId": {
-                                            "description": "Logic App Execution Id, like workflow()['run']['name']",
-                                            "title": "Logic App Execution Id",
-                                            "type": "string"
-                                        },
-                                        "LogicAppName": {
-                                            "description": "Logic App Name, like workflow()['name']",
-                                            "title": "Logic App Name",
-                                            "type": "string"
-                                        },
-                                        "LogicAppRunId": {
-                                            "description": "Logic App Run Id, like workflow()['run']['id']",
-                                            "title": "Logic App Run Id",
-                                            "type": "string"
-                                        },
-                                        "LogsType": {
-                                            "description": "Please use only LogicAppMain or LogicAppConnector",
-                                            "enum": [
-                                                "D365",
-                                                "ExternalSystem",
-                                                "LogicAppMain",
-                                                "LogicAppConnector"
-                                            ],
-                                            "title": "Type of Logs",
-                                            "type": "string"
-                                        },
-                                        "MessageId": {
-                                            "description": "Message Id from Azure Service Bus",
-                                            "title": "Message Id",
-                                            "type": "string"
-                                        },
-                                        "Status": {
-                                            "description": "Use Warning to send an email alert, but in FSC execution status will be OK",
-                                            "enum": [
-                                                "Error",
-                                                "Warning",
-                                                "OK"
-                                            ],
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "ContentData",
-                                        "BusinessEventId",
-                                        "EnqueuedTimeUtc",
-                                        "MessageId",
-                                        "LogicAppName",
-                                        "LogicAppExecutionId",
-                                        "LogicAppRunId",
-                                        "Status",
-                                        "LogsType"
-                                    ],
-                                    "type": "object"
-                                }
-                            },
-                            "operationOptions": "EnableSchemaValidation"
-                        }
-                    },
-                    "actions": {
-                        "Add_logs_to_the_FSC": {
-                            "runAfter": {
-                                "Init_Integration_Status": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "Http",
-                            "inputs": {
-                                "authentication": {
-                                    "audience": "@body('Parse_JSON_from_ContentData')?['D365EnvironmentURL']",
-                                    "clientId": "@body('Parse_JSON_from_ContentData')?['AzureApplicationId']",
-                                    "secret": "@decodeBase64(body('Parse_JSON_from_ContentData')?['AzureApplicationSecret'])",
-                                    "tenant": "@body('Parse_JSON_from_ContentData')?['AzureTenantId']",
-                                    "type": "ActiveDirectoryOAuth"
-                                },
-                                "body": {
-                                    "CustomErrorMessage": "@{triggerBody()?['CustomErrorMessage']}",
-                                    "DMFDefinitionGroupName": "@{body('Parse_JSON_from_ContentData')?['DefinitionGroupName']}",
-                                    "DMFExecutionId": "@{triggerBody()?['DMFExecutionId']}",
-                                    "DataManagementIntegrationId": "@{body('Parse_JSON_from_ContentData')?['DataManagementIntegrationId']}",
-                                    "DataManagementIntegrationUniqueId": "@{body('Parse_JSON_from_ContentData')?['DataManagementIntegrationUniqueId']}",
-                                    "DataManagementLogSource": "@{triggerBody()['LogicAppName']}",
-                                    "DataPackageURL": "@{triggerBody()?['DataPackageURL']}",
-                                    "Direction": "@{body('Parse_JSON_from_ContentData')?['DataMigrationDirection']}",
-                                    "ExternalSystem": "@{body('Parse_JSON_from_ContentData')?['ExternalSystem']}",
-                                    "IntegrationStatus": "@{variables('Integration Status')}",
-                                    "Log": "@{triggerBody()?['ArrayOfLogs']}",
-                                    "LogicAppExecutionId": "@{triggerBody()['LogicAppExecutionId']}",
-                                    "LogsType": "@{triggerBody()['LogsType']}"
-                                },
-                                "headers": {
-                                    "Content-Type": "application/json"
-                                },
-                                "method": "POST",
-                                "uri": "@{body('Parse_JSON_from_ContentData')?['D365EnvironmentURL']}/data/DataManagementIntegrationLogs"
-                            }
-                        },
-                        "Condition": {
-                            "actions": {
-                                "Compose_HTML_Email": {
-                                    "runAfter": {
-                                        "Compose_Logic_App_URL": [
-                                            "Succeeded"
-                                        ]
-                                    },
-                                    "type": "Compose",
-                                    "inputs": "<style>table, table th, table td {border: 2px solid red; border-collapse: collapse;padding: 5px;}tr:hover {background-color: #D6EEEE;}table th {background-color: lightgray;}</style>\n\n<p>Hi,\n\n<br /><br />Logic app <strong>@{triggerBody()['LogicAppName']}</strong> has state <span style=\"color: #d14841;\">@{variables('Integration Status')}</span> with status <span style=\"color: #ba241c;\"> @{triggerBody()['Status']}</span>.\n<br /> <br /> \n<br />Please find some details below.\n<br />\n<br /><strong>Data Package URL</strong>: @{triggerBody()?['DataPackageURL']}\n<br /><strong>DMF Execution Id</strong>: @{triggerBody()?['DMFExecutionId']}\n<br /><strong>Azure Service Bus Message Id</strong>: @{triggerBody()['MessageId']}\n<br /><strong>Azure Service Bus Enqueued time</strong>: @{triggerBody()['EnqueuedTimeUtc']}\n\n<br /> \n<br /><strong>FSC Business Event Id</strong>: @{triggerBody()['BusinessEventId']}\n<br /><strong>FSC Environment URL</strong>: @{body('Parse_JSON_from_ContentData')?['D365EnvironmentURL']}\n<br /><strong>Data Management Integration Id</strong>: @{body('Parse_JSON_from_ContentData')?['DataManagementIntegrationId']}\n<br /><strong>Data Management Integration Unque Id (Transaction Id)</strong>: @{body('Parse_JSON_from_ContentData')?['DataManagementIntegrationUniqueId']}\n<br /><strong>Data Management Direction</strong>: @{body('Parse_JSON_from_ContentData')?['DataMigrationDirection']}\n<br /><strong>DMF Definition Group</strong>: @{body('Parse_JSON_from_ContentData')?['DefinitionGroupName']}\n<br /><strong>Environment Name</strong>: @{body('Parse_JSON_from_ContentData')?['EnvironmentName']}\n<br /><strong>External System</strong>: @{body('Parse_JSON_from_ContentData')?['ExternalSystem']} (@{body('Parse_JSON_from_ContentData')?['ExternalSystemDescription']})\n<br /><strong>FSC Legal Entity</strong>: @{body('Parse_JSON_from_ContentData')?['LegalEntity']}\n<br /> \n<br /><strong>Logic App Name</strong>: @{triggerBody()['LogicAppName']}\n<br /><strong>Logic App Execution ID</strong>: @{triggerBody()['LogicAppExecutionId']}\n<br /><strong>Logic App Execution URL</strong>: <a href=\"@{outputs('Compose_Logic_App_URL')}\">@{outputs('Compose_Logic_App_URL')}</a>\n\n<br /><br /><strong>Custom Error Message:</strong> @{triggerBody()?['CustomErrorMessage']}</p>\n<br /><p>Logs</p> \n@{body('Create_HTML_table_from_Logs')}\n\n<br /><br /><br />It is recommended to open the Logic App URL (@{outputs('Compose_Logic_App_URL')}) and find more details there. However, sometimes URL is not generated well; in this case, please open Azure Portal (<a href=\"https://portal.azure.com/\">https://portal.azure.com/</a>) manually, and open Logic App (@{triggerBody()['LogicAppName']}), and search the following ID @{triggerBody()['LogicAppExecutionId']} in the execution history.</p>\n"
-                                },
-                                "Compose_Logic_App_URL": {
-                                    "runAfter": {
-                                        "Create_HTML_table_from_Logs": [
-                                            "Succeeded"
-                                        ]
-                                    },
-                                    "type": "Compose",
-                                    "inputs": "@concat('https://portal.azure.com/#blade/Microsoft_Azure_EMA/LogicAppsMonitorBlade/runid/',encodeUriComponent(triggerBody()['LogicAppRunId']))"
-                                },
-                                "Create_HTML_table_from_Logs": {
-                                    "runAfter": {},
-                                    "type": "Table",
-                                    "inputs": {
-                                        "format": "HTML",
-                                        "from": "@triggerBody()?['ArrayOfLogs']"
-                                    }
-                                }
-                            },
-                            "runAfter": {
-                                "Init_Integration_Status": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "expression": {
-                                "and": [
-                                    {
-                                        "not": {
-                                            "equals": [
-                                                "@triggerBody()['Status']",
-                                                "OK"
-                                            ]
-                                        }
-                                    }
-                                ]
-                            },
-                            "type": "If"
-                        },
-                        "Extract_Base64_ContentData": {
-                            "runAfter": {
-                                "Init_Alert_Email_To": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "Compose",
-                            "inputs": "@base64ToString(triggerBody()['ContentData'])"
-                        },
-                        "Init_Alert_Email_From": {
-                            "runAfter": {},
-                            "type": "InitializeVariable",
-                            "inputs": {
-                                "variables": [
-                                    {
-                                        "name": "Alert Email From",
-                                        "type": "string",
-                                        "value": "support@ciellos.com"
-                                    }
-                                ]
-                            }
-                        },
-                        "Init_Alert_Email_To": {
-                            "runAfter": {
-                                "Init_Alert_Email_From": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "InitializeVariable",
-                            "inputs": {
-                                "variables": [
-                                    {
-                                        "name": "Alert Email To",
-                                        "type": "string",
-                                        "value": "valery.moskalenko@ciellos.com;valentyn.khutornyi@ciellos.com"
-                                    }
-                                ]
-                            }
-                        },
-                        "Init_Integration_Status": {
-                            "runAfter": {
-                                "Parse_JSON_from_ContentData": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "InitializeVariable",
-                            "inputs": {
-                                "variables": [
-                                    {
-                                        "name": "Integration Status",
-                                        "type": "string",
-                                        "value": "@{replace(replace(replace(triggerBody()['Status'],'OK','Sucess'),'Error','Failed'),'Warning','Sucess')}"
-                                    }
-                                ]
-                            }
-                        },
-                        "Parse_JSON_from_ContentData": {
-                            "runAfter": {
-                                "Extract_Base64_ContentData": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "ParseJson",
-                            "inputs": {
-                                "content": "@outputs('Extract_Base64_ContentData')",
-                                "schema": {
-                                    "properties": {
-                                        "AzureApplicationId": {
-                                            "type": "string"
-                                        },
-                                        "AzureApplicationSecret": {
-                                            "type": "string"
-                                        },
-                                        "AzureTenantId": {
-                                            "type": "string"
-                                        },
-                                        "BusinessEventId": {
-                                            "type": "string"
-                                        },
-                                        "ControlNumber": {
-                                            "type": "integer"
-                                        },
-                                        "D365EnvironmentURL": {
-                                            "type": "string"
-                                        },
-                                        "DataManagementIntegrationId": {
-                                            "type": "string"
-                                        },
-                                        "DataManagementIntegrationUniqueId": {
-                                            "type": "string"
-                                        },
-                                        "DataMigrationDirection": {
-                                            "type": "string"
-                                        },
-                                        "DataProjectErrorPath": {
-                                            "type": "string"
-                                        },
-                                        "DataProjectPath": {
-                                            "type": "string"
-                                        },
-                                        "DataProjectProcessedPath": {
-                                            "type": "string"
-                                        },
-                                        "DefinitionGroupName": {
-                                            "type": "string"
-                                        },
-                                        "EnvironmentName": {
-                                            "type": "string"
-                                        },
-                                        "EventId": {
-                                            "type": "string"
-                                        },
-                                        "EventTime": {
-                                            "type": "string"
-                                        },
-                                        "ExternalSystem": {
-                                            "type": "string"
-                                        },
-                                        "ExternalSystemDescription": {
-                                            "type": "string"
-                                        },
-                                        "LegalEntity": {
-                                            "type": "string"
-                                        },
-                                        "MajorVersion": {
-                                            "type": "integer"
-                                        },
-                                        "MinorVersion": {
-                                            "type": "integer"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        },
-                        "Response_OK_ALWAYS": {
-                            "runAfter": {
-                                "Init_Alert_Email_To": [
-                                    "Succeeded"
-                                ]
-                            },
-                            "type": "Response",
-                            "kind": "Http",
-                            "inputs": {
-                                "body": "Logs will be submitted in the background",
-                                "statusCode": 200
-                            }
-                        }
-                    },
-                    "outputs": {}
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
                 },
-                "parameters": {},
-                "state": "Enabled"
-            },
-            "scale": null,
-            "tags": {},
-            "type": "Microsoft.Logic/workflows"
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "bypass": "AzureServices"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [],
+                "enabledForDeployment": false,
+                "enabledForDiskEncryption": false,
+                "enabledForTemplateDeployment": false,
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 90,
+                "enableRbacAuthorization": false,
+                "vaultUri": "https://devimportexportvault.vault.azure.net/",
+                "provisioningState": "Succeeded",
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2021-11-01-preview",
+            "name": "[concat(parameters('vaults_DEVImportExportVault_name'), '/devimportexportqueue')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('vaults_DEVImportExportVault_name'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
         }
-    ],
-    "variables": {}
+    ]
 }
