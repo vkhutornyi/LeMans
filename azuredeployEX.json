@@ -2628,7 +2628,7 @@
 			"type": "Microsoft.Web/connections",
 			"apiVersion": "2016-06-01",
 			"name": "[variables('externalSystemName')]",
-			"location": "[variables('logicAppLocation')]",
+			"location": "[variables('location')]",
 			"properties": {
 				"api": {
 					"id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'filesystem')]"
