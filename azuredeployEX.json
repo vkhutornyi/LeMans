@@ -30,10 +30,7 @@
 		{
 			"apiVersion": "2017-07-01",
 			"dependsOn": [
-				"[resourceId('Microsoft.Web/connections', variables('servicebusName'))]",
-				"[resourceId('Microsoft.Web/connections', variables('storageAccountName'))]",
-				"[resourceId('Microsoft.Web/connections', variables('externalSystemName'))]",
-                "[resourceId('Microsoft.Logic/workflows', variables('workflowLoggingName'))]"
+				"[resourceId('Microsoft.Web/connections', variables('externalSystemName'))]"
 			],
 			"location": "[variables('location')]",
 			"name": "[variables('workflowImportEXName')]",
@@ -1893,9 +1890,7 @@
         {
             "apiVersion": "2017-07-01",
             "dependsOn": [
-				"[resourceId('Microsoft.Web/connections', variables('servicebusName'))]",
-				"[resourceId('Microsoft.Web/connections', variables('externalSystemName'))]",
-                "[resourceId('Microsoft.Logic/workflows', variables('workflowLoggingName'))]"
+				"[resourceId('Microsoft.Web/connections', variables('externalSystemName'))]"
 			],
             "location": "[variables('location')]",
             "name": "[variables('workflowExportEXName')]",
