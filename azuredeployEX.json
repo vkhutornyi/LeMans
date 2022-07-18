@@ -1384,7 +1384,7 @@
 								"host": {
 									"triggerName": "manual",
 									"workflow": {
-										"id": "[resourceId('Microsoft.Logic/workflows', 'DEV_Logging')]"
+										"id": "[resourceId('Microsoft.Logic/workflows', variables('workflowLoggingName'))]"
 									}
 								}
 							}
