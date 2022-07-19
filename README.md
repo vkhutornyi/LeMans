@@ -1,6 +1,6 @@
 # How to install ARM template
 
-##Prerequisites
+## Prerequisites
 - You must have installed and configured Twilio SendGrid in your Azure Subscription to be able to receive email alerts from Logic Apps.
 - You must have installed and configured an On-premises data gateway for your onpremise external system
 
