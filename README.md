@@ -8,7 +8,7 @@
 
 # [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvkhutornyi%2FLeMans%2Fmain%2FazuredeployEX.json) EX system connectors
 
-# Post deployment tasks
+## Post deployment tasks
 - Find external system deployed web connector and fill out all requred fields
  ![Edit web connector API](./20220718210245.png)
 
